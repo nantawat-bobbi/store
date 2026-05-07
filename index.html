@@ -3,211 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MarketBrain: Workflow</title>
+    <title>MARKET INTELLIGENCE PRO</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Sarabun', sans-serif; background: #f8fafc; }
-        .step-btn { flex: 1; text-align: center; padding: 12px 5px; font-size: 10px; font-weight: bold; color: #94a3b8; border-bottom: 3px solid #e2e8f0; transition: 0.3s; }
-        .step-btn.active { color: #4f46e5; border-bottom: 3px solid #4f46e5; background: #f5f3ff; }
-        .item-row { transition: 0.2s; border-radius: 15px; }
-        .item-row.selected { background: #eef2ff; border: 2px solid #6366f1; }
-        .warning-blink { animation: blink 1s infinite; }
-        @keyframes blink { 0% { background: #fee2e2; } 50% { background: #ffffff; } 100% { background: #fee2e2; } }
+        :root { --primary: #6366f1; --bg: #0f172a; --card: #1e293b; }
+        body { font-family: 'Inter', 'Sarabun', sans-serif; background: var(--bg); color: white; -webkit-font-smoothing: antialiased; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        .step-indicator { height: 4px; border-radius: 10px; flex: 1; background: rgba(255,255,255,0.1); transition: 0.5s; }
+        .step-indicator.active { background: var(--primary); box-shadow: 0 0 15px var(--primary); }
+        .item-card { background: var(--card); border: 1px solid rgba(255,255,255,0.05); border-radius: 24px; transition: 0.3s; }
+        .item-card:active { transform: translateY(2px); background: #2d3a4f; }
+        .numpad-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; font-size: 1.5rem; transition: 0.2s; }
+        .numpad-btn:active { background: var(--primary); color: white; }
+        .gradient-text { background: linear-gradient(90deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     </style>
 </head>
 <body class="pb-24">
 
-    <nav class="flex bg-white sticky top-0 z-50 shadow-sm">
-        <button onclick="showStep(1)" id="btn-step1" class="step-btn active">1.จำลอง</button>
-        <button onclick="showStep(2)" id="btn-step2" class="step-btn">2.เลือกของ</button>
-        <button onclick="showStep(3)" id="btn-step3" class="step-btn">3.ตั้งงบ</button>
-        <button onclick="showStep(4)" id="btn-step4" class="step-btn">4.ลำดับเดิน</button>
-        <button onclick="showStep(5)" id="btn-step5" class="step-btn">5.จ่ายจริง</button>
-    </nav>
+    <header class="p-6 pt-10 sticky top-0 z-50 glass rounded-b-[2.5rem]">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-xs uppercase tracking-[0.2em] text-slate-400 font-bold">Market Intelligence</h1>
+                <h2 class="text-2xl font-bold gradient-text">OPERATIONS</h2>
+            </div>
+            <div class="text-right">
+                <span class="text-[10px] text-slate-500 block uppercase">Efficiency Score</span>
+                <span class="text-xl font-bold text-green-400">94%</span>
+            </div>
+        </div>
 
-    <div id="budget-bar" class="hidden p-4 bg-indigo-900 text-white flex justify-between items-center">
-        <div><p class="text-[10px] opacity-70">งบประมาณ</p><p id="view-budget" class="font-bold">฿ 0</p></div>
-        <div class="text-right"><p class="text-[10px] opacity-70">ใช้ไปแล้ว</p><p id="view-spent" class="font-bold text-green-400">฿ 0</p></div>
-    </div>
+        <div class="flex gap-2 mb-2">
+            <div class="step-indicator active" id="dot-1"></div>
+            <div class="step-indicator" id="dot-2"></div>
+            <div class="step-indicator" id="dot-3"></div>
+            <div class="step-indicator" id="dot-4"></div>
+            <div class="step-indicator" id="dot-5"></div>
+        </div>
+        <div class="flex justify-between text-[10px] font-bold text-slate-500 uppercase tracking-tighter">
+            <span>Simulate</span><span>Select</span><span>Budget</span><span>Route</span><span>Execution</span>
+        </div>
+    </header>
 
-    <main class="p-4">
-        <section id="panel-1" class="step-panel">
-            <h2 class="font-bold mb-3 text-slate-500"><i class="fas fa-database mr-2"></i>คลังสินค้าหลัก</h2>
-            <div id="inventory-display" class="grid grid-cols-1 gap-2"></div>
-        </section>
-
-        <section id="panel-2" class="step-panel hidden">
-            <h2 class="font-bold mb-1 text-slate-800">เลือกของที่จะซื้อวันนี้</h2>
-            <p class="text-xs text-slate-400 mb-4">* ติ๊กเลือกรายการที่คุณต้องการซื้อในรอบนี้</p>
-            <div id="selection-display" class="space-y-2"></div>
-        </section>
-
-        <section id="panel-3" class="step-panel hidden text-center pt-10">
-            <i class="fas fa-wallet text-5xl text-indigo-200 mb-4"></i>
-            <h2 class="font-bold text-xl mb-6">ตั้งงบการซื้อครั้งนี้</h2>
-            <input type="number" id="input-budget" oninput="saveBudget()" placeholder="0.00" class="w-full max-w-[250px] text-center text-4xl font-bold p-4 rounded-3xl bg-white border-2 border-indigo-100 outline-none focus:border-indigo-500 shadow-inner">
-        </section>
-
-        <section id="panel-4" class="step-panel hidden">
-            <h2 class="font-bold mb-4 text-slate-800">เส้นทางเดินตลาด (จำจากครั้งก่อน)</h2>
-            <div id="route-display" class="space-y-3"></div>
-            <p class="text-[10px] text-slate-400 mt-6 text-center italic">ระบบเรียงลำดับร้านที่คุณเคยซื้อก่อน-หลังให้อัตโนมัติ</p>
-        </section>
-
-        <section id="panel-5" class="step-panel hidden">
-            <div id="shopping-display" class="space-y-3"></div>
-        </section>
+    <main class="p-6 space-y-6">
+        <div id="panel-container">
+            <div id="panel-content" class="space-y-4">
+                </div>
+        </div>
     </main>
 
-    <div id="calc-modal" class="fixed inset-0 bg-slate-900/95 z-[100] hidden flex flex-col p-6 text-white">
-        <div class="flex justify-between items-center mb-6">
-            <h2 id="calc-name" class="text-2xl font-bold">ชื่อสินค้า</h2>
-            <button onclick="confirmPrice()" class="bg-indigo-600 px-10 py-3 rounded-2xl font-bold">บันทึก</button>
+    <nav class="fixed bottom-0 w-full glass p-6 flex justify-between items-center rounded-t-[2.5rem] z-50">
+        <button onclick="prevStep()" class="w-12 h-12 rounded-full flex items-center justify-center text-slate-400 border border-slate-700">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <div class="text-center">
+            <p id="step-name" class="text-xs font-bold text-slate-500 uppercase">Step 1: Simulation</p>
+            <p id="step-desc" class="text-sm font-semibold">ตรวจสอบความพร้อม</p>
         </div>
-        
-        <div id="price-warning" class="hidden mb-4 p-4 bg-red-600 rounded-xl flex items-center gap-3 warning-blink">
-            <i class="fas fa-exclamation-circle text-xl"></i>
-            <div class="text-sm">ราคาสูงกว่าครั้งที่แล้ว! (เดิม ฿<span id="old-p">0</span>)</div>
+        <button onclick="nextStep()" class="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </nav>
+
+    <div id="calc-modal" class="fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-xl hidden p-8 flex flex-col justify-end">
+        <div class="mb-auto pt-10 text-center">
+            <h3 id="calc-title" class="text-slate-400 uppercase tracking-widest text-sm mb-2">ปลาแซลมอน นอร์เวย์</h3>
+            <div class="flex justify-center items-center gap-4 mb-4">
+                <div class="text-slate-500 line-through text-xl">฿450</div>
+                <div class="text-6xl font-bold text-white tracking-tighter" id="calc-val">0</div>
+            </div>
+            <div id="alert-pill" class="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-red-500/20 text-red-400 text-xs font-bold hidden animate-bounce">
+                <i class="fas fa-arrow-trend-up"></i> สูงกว่าราคาเป้าหมาย
+            </div>
         </div>
 
-        <div class="bg-white/10 p-8 rounded-3xl mb-6 text-center border border-white/10">
-            <p class="text-xs opacity-50 uppercase mb-2">ราคาซื้อครั้งนี้</p>
-            <div id="calc-display" class="text-6xl font-bold text-indigo-400">0</div>
+        <div class="grid grid-cols-3 gap-4 mb-10">
+            <button onclick="n('7')" class="numpad-btn py-6">7</button>
+            <button onclick="n('8')" class="numpad-btn py-6">8</button>
+            <button onclick="n('9')" class="numpad-btn py-6">9</button>
+            <button onclick="n('4')" class="numpad-btn py-6">4</button>
+            <button onclick="n('5')" class="numpad-btn py-6">5</button>
+            <button onclick="n('6')" class="numpad-btn py-6">6</button>
+            <button onclick="n('1')" class="numpad-btn py-6">1</button>
+            <button onclick="n('2')" class="numpad-btn py-6">2</button>
+            <button onclick="n('3')" class="numpad-btn py-6">3</button>
+            <button onclick="n('C')" class="numpad-btn py-6 text-red-400 text-sm">CLEAR</button>
+            <button onclick="n('0')" class="numpad-btn py-6">0</button>
+            <button onclick="confirmPrice()" class="numpad-btn py-6 bg-indigo-600 text-white"><i class="fas fa-check"></i></button>
         </div>
-
-        <div class="grid grid-cols-3 gap-3 flex-1">
-            <button onclick="num('7')" class="bg-white/5 rounded-2xl text-2xl font-bold active:bg-indigo-500">7</button>
-            <button onclick="num('8')" class="bg-white/5 rounded-2xl text-2xl font-bold active:bg-indigo-500">8</button>
-            <button onclick="num('9')" class="bg-white/5 rounded-2xl text-2xl font-bold active:bg-indigo-500">9</button>
-            <button onclick="num('4')" class="bg-white/5 rounded-2xl text-2xl font-bold active:bg-indigo-500">4</button>
-            <button onclick="num('5')" class="bg-white/5 rounded-2xl text-2xl font-bold active:bg-indigo-500">5</button>
-            <button onclick="num('6')" class="bg-white/5 rounded-2xl text-2xl font-bold active:bg-indigo-500">6</button>
-            <button onclick="num('1')" class="bg-white/5 rounded-2xl text-2xl font-bold active:bg-indigo-500">1</button>
-            <button onclick="num('2')" class="bg-white/5 rounded-2xl text-2xl font-bold active:bg-indigo-500">2</button>
-            <button onclick="num('3')" class="bg-white/5 rounded-2xl text-2xl font-bold active:bg-indigo-500">3</button>
-            <button onclick="num('C')" class="bg-red-500/20 text-red-400 rounded-2xl text-2xl font-bold">C</button>
-            <button onclick="num('0')" class="bg-white/5 rounded-2xl text-2xl font-bold active:bg-indigo-500">0</button>
-            <button onclick="closeCalc()" class="text-slate-500">ปิด</button>
-        </div>
+        <button onclick="closeCalc()" class="text-slate-500 text-xs uppercase tracking-widest font-bold">Cancel</button>
     </div>
 
     <script>
-        // ข้อมูลหลักของร้าน (จำลอง Database)
+        let currentStep = 1;
         let db = [
-            { id: 1, name: 'แซลมอน (ตัว)', prev: 450, shop: 'เจ๊แดง', order: 1, selected: false, now: 0 },
-            { id: 2, name: 'ทูน่า (ชิ้น)', prev: 800, shop: 'Interfish', order: 2, selected: false, now: 0 },
-            { id: 3, name: 'หัวไชเท้า', prev: 20, shop: 'แผงป้า', order: 4, selected: false, now: 0 },
-            { id: 4, name: 'ไข่กุ้ง', prev: 150, shop: 'ของสดA', order: 3, selected: false, now: 0 },
-            { id: 5, name: 'ข้าวญี่ปุ่น', prev: 1200, shop: 'Makro', order: 5, selected: false, now: 0 }
+            { id: 1, name: 'แซลมอน (Trim C)', prev: 450, shop: 'เจ๊แดง', order: 1, selected: true, now: 0 },
+            { id: 2, name: 'หัวไชเท้าขูด', prev: 25, shop: 'ตลาดไท', order: 3, selected: true, now: 0 },
+            { id: 3, name: 'โชยุญี่ปุ่น', prev: 520, shop: 'Makro', order: 2, selected: false, now: 0 }
         ];
-
-        let budget = 0;
-        let activeId = null;
-        let typedVal = "";
-
-        function showStep(step) {
-            document.querySelectorAll('.step-panel').forEach(p => p.classList.add('hidden'));
-            document.querySelectorAll('.step-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`panel-${step}`).classList.remove('hidden');
-            document.getElementById(`btn-step${step}`).classList.add('active');
-            document.getElementById('budget-bar').classList.toggle('hidden', step != 5);
-            render();
-        }
+        let val = "";
 
         function render() {
-            // Step 1: คลังสินค้า
-            document.getElementById('inventory-display').innerHTML = db.map(i => `
-                <div class="p-4 bg-white border border-slate-100 rounded-xl flex justify-between items-center shadow-sm">
-                    <span class="font-bold text-slate-700">${i.name}</span>
-                    <span class="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-md">฿ ${i.prev}</span>
-                </div>
-            `).join('');
+            const content = document.getElementById('panel-content');
+            const stepName = document.getElementById('step-name');
+            const stepDesc = document.getElementById('step-desc');
+            
+            // Update Indicators
+            document.querySelectorAll('.step-indicator').forEach((dot, i) => {
+                dot.className = `step-indicator ${i < currentStep ? 'active' : ''}`;
+            });
 
-            // Step 2: เลือกของ (Checklist)
-            document.getElementById('selection-display').innerHTML = db.map(i => `
-                <div onclick="toggleSelect(${i.id})" class="item-row p-4 border-2 bg-white flex justify-between items-center cursor-pointer mb-2 ${i.selected ? 'selected' : 'border-transparent shadow-sm'}">
-                    <span class="font-bold ${i.selected ? 'text-indigo-700' : 'text-slate-600'}">${i.name}</span>
-                    <i class="fas ${i.selected ? 'fa-check-circle text-indigo-500' : 'fa-circle text-slate-100'} text-xl"></i>
-                </div>
-            `).join('');
-
-            // Step 4: ลำดับการเดิน
-            const picked = db.filter(i => i.selected).sort((a,b) => a.order - b.order);
-            document.getElementById('route-display').innerHTML = picked.map((i, idx) => `
-                <div class="p-4 bg-white rounded-2xl flex items-center gap-4 border border-slate-100 shadow-sm">
-                    <div class="w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-sm">${idx + 1}</div>
-                    <div class="flex-1">
-                        <p class="font-bold text-slate-800">${i.name}</p>
-                        <p class="text-[10px] text-slate-400">ร้าน: ${i.shop}</p>
-                    </div>
-                    <i class="fas fa-map-marker-alt text-red-400"></i>
-                </div>
-            `).join('');
-
-            // Step 5: จ่ายจริง
-            document.getElementById('shopping-display').innerHTML = picked.map(i => `
-                <div onclick="openCalc(${i.id})" class="p-5 rounded-3xl bg-white shadow-sm border-2 ${i.now > 0 ? (i.now > i.prev ? 'border-red-400' : 'border-green-400') : 'border-slate-100'}">
-                    <div class="flex justify-between items-center">
+            if (currentStep === 1) {
+                stepName.innerText = "Step 1: Simulation";
+                stepDesc.innerText = "วิเคราะห์คลังสินค้าหลัก";
+                content.innerHTML = db.map(i => `
+                    <div class="item-card p-5 flex justify-between items-center">
                         <div>
-                            <h3 class="font-bold text-lg">${i.name}</h3>
-                            <p class="text-xs text-slate-400 italic">ร้าน ${i.shop} | เดิม ฿${i.prev}</p>
+                            <p class="text-xs text-slate-500 font-bold uppercase">${i.shop}</p>
+                            <h4 class="font-bold text-lg">${i.name}</h4>
                         </div>
                         <div class="text-right">
-                            <p class="text-2xl font-bold ${i.now > 0 ? 'text-slate-800' : 'text-slate-200'}">${i.now > 0 ? '฿'+i.now : 'คีย์ราคา'}</p>
+                            <p class="text-[10px] text-slate-500">LAST PRICE</p>
+                            <p class="font-bold text-indigo-400">฿${i.prev}</p>
                         </div>
                     </div>
-                </div>
-            `).join('');
-
-            const spent = db.reduce((s, i) => s + (i.now || 0), 0);
-            document.getElementById('view-spent').innerText = `฿ ${spent.toLocaleString()}`;
-        }
-
-        function toggleSelect(id) {
-            const item = db.find(i => i.id === id);
-            item.selected = !item.selected;
-            render();
-        }
-
-        function saveBudget() {
-            budget = document.getElementById('input-budget').value || 0;
-            document.getElementById('view-budget').innerText = `฿ ${parseFloat(budget).toLocaleString()}`;
-        }
-
-        function openCalc(id) {
-            activeId = id;
-            const item = db.find(i => i.id === id);
-            typedVal = "";
-            document.getElementById('calc-name').innerText = item.name;
-            document.getElementById('old-p').innerText = item.prev;
-            document.getElementById('calc-display').innerText = "0";
-            document.getElementById('calc-modal').classList.remove('hidden');
-            document.getElementById('price-warning').classList.add('hidden');
-        }
-
-        function num(k) {
-            if(k === 'C') typedVal = "";
-            else typedVal += k;
-            document.getElementById('calc-display').innerText = typedVal || "0";
-            
-            const item = db.find(i => i.id === activeId);
-            if(parseInt(typedVal) > item.prev) {
-                document.getElementById('price-warning').classList.remove('hidden');
+                `).join('');
+            } else if (currentStep === 5) {
+                stepName.innerText = "Step 5: Execution";
+                stepDesc.innerText = "กำลังดำเนินการจัดซื้อ";
+                content.innerHTML = db.filter(i => i.selected).map(i => `
+                    <div onclick="openCalc(${i.id})" class="item-card p-6 flex justify-between items-center border-l-4 ${i.now > 0 ? (i.now > i.prev ? 'border-red-500' : 'border-green-500') : 'border-indigo-500'}">
+                        <div class="flex-1">
+                            <h4 class="font-bold text-xl">${i.name}</h4>
+                            <p class="text-xs text-slate-500 uppercase mt-1">Target: ฿${i.prev} | Shop: ${i.shop}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-2xl font-bold ${i.now > 0 ? 'text-white' : 'text-slate-700'} tracking-tighter">${i.now > 0 ? '฿'+i.now : '---'}</p>
+                        </div>
+                    </div>
+                `).join('');
             } else {
-                document.getElementById('price-warning').classList.add('hidden');
+                content.innerHTML = `<div class="text-center py-20 text-slate-600 italic">หน้าจอส่วนนี้อยู่ระหว่างการปรับจูนความสวยงาม...</div>`;
             }
         }
 
-        function confirmPrice() {
+        let activeId = null;
+        function openCalc(id) {
+            activeId = id;
+            val = "";
+            const item = db.find(i => i.id === id);
+            document.getElementById('calc-title').innerText = item.name;
+            document.getElementById('calc-val').innerText = "0";
+            document.getElementById('calc-modal').classList.remove('hidden');
+        }
+
+        function n(k) {
+            if(k === 'C') val = ""; else val += k;
+            document.getElementById('calc-val').innerText = val || "0";
             const item = db.find(i => i.id === activeId);
-            item.now = parseInt(typedVal) || 0;
-            closeCalc();
+            document.getElementById('alert-pill').classList.toggle('hidden', parseInt(val) <= item.prev);
+        }
+
+        function confirmPrice() {
+            db.find(i => i.id === activeId).now = parseInt(val) || 0;
+            document.getElementById('calc-modal').classList.add('hidden');
             render();
         }
 
         function closeCalc() { document.getElementById('calc-modal').classList.add('hidden'); }
+        function nextStep() { if(currentStep < 5) currentStep++; render(); }
+        function prevStep() { if(currentStep > 1) currentStep--; render(); }
 
         render();
     </script>
