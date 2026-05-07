@@ -3,220 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MarketBrain: Workflow Edition</title>
+    <title>MarketBrain: Workflow</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Sarabun', sans-serif; background: #f1f5f9; color: #1e293b; }
-        .step-card { display: none; }
-        .step-card.active { display: block; }
-        .drag-handle { cursor: grab; }
-        .warning-pulse { animation: pulse 2s infinite; }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
+        body { font-family: 'Sarabun', sans-serif; background: #f8fafc; }
+        .step-btn { flex: 1; text-align: center; padding: 12px 5px; font-size: 10px; font-weight: bold; color: #94a3b8; border-bottom: 3px solid #e2e8f0; transition: 0.3s; }
+        .step-btn.active { color: #4f46e5; border-bottom: 3px solid #4f46e5; background: #f5f3ff; }
+        .item-row { transition: 0.2s; border-radius: 15px; }
+        .item-row.selected { background: #eef2ff; border: 2px solid #6366f1; }
+        .warning-blink { animation: blink 1s infinite; }
+        @keyframes blink { 0% { background: #fee2e2; } 50% { background: #ffffff; } 100% { background: #fee2e2; } }
     </style>
 </head>
-<body class="pb-20">
+<body class="pb-24">
 
-    <header class="bg-white p-4 sticky top-0 z-50 shadow-sm border-b">
-        <div class="mb-4">
-            <label class="text-[10px] font-bold text-slate-400 uppercase">ขั้นตอนการทำงาน</label>
-            <select id="step-selector" onchange="changeStep(this.value)" class="w-full p-3 bg-slate-100 rounded-xl font-bold text-indigo-600 outline-none border-none">
-                <option value="1">1. จำลองก่อนออกไปซื้อ (Check Stock)</option>
-                <option value="2">2. เตรียมสินค้า (Select Items)</option>
-                <option value="3">3. ตั้งงบประมาณ (Set Budget)</option>
-                <option value="4">4. จัดลำดับเดินตลาด (Route Order)</option>
-                <option value="5">5. กำลังซื้อ (Shopping Mode)</option>
-            </select>
-        </div>
-        <div id="budget-header" class="hidden flex justify-between items-end bg-indigo-50 p-3 rounded-xl">
-            <div>
-                <p class="text-[10px] text-indigo-400 font-bold">งบประมาณที่ตั้งไว้</p>
-                <p id="display-budget" class="text-xl font-bold text-indigo-700">฿ 0</p>
-            </div>
-            <div class="text-right">
-                <p class="text-[10px] text-slate-400 font-bold">ใช้ไปแล้ว</p>
-                <p id="display-spent" class="text-xl font-bold text-slate-700">฿ 0</p>
-            </div>
-        </div>
-    </header>
+    <nav class="flex bg-white sticky top-0 z-50 shadow-sm">
+        <button onclick="showStep(1)" id="btn-step1" class="step-btn active">1.จำลอง</button>
+        <button onclick="showStep(2)" id="btn-step2" class="step-btn">2.เลือกของ</button>
+        <button onclick="showStep(3)" id="btn-step3" class="step-btn">3.ตั้งงบ</button>
+        <button onclick="showStep(4)" id="btn-step4" class="step-btn">4.ลำดับเดิน</button>
+        <button onclick="showStep(5)" id="btn-step5" class="step-btn">5.จ่ายจริง</button>
+    </nav>
+
+    <div id="budget-bar" class="hidden p-4 bg-indigo-900 text-white flex justify-between items-center">
+        <div><p class="text-[10px] opacity-70">งบประมาณ</p><p id="view-budget" class="font-bold">฿ 0</p></div>
+        <div class="text-right"><p class="text-[10px] opacity-70">ใช้ไปแล้ว</p><p id="view-spent" class="font-bold text-green-400">฿ 0</p></div>
+    </div>
 
     <main class="p-4">
-        <section id="step-1" class="step-card active space-y-3">
-            <h2 class="font-bold text-lg">รายการสินค้าทั้งหมด</h2>
-            <div id="inventory-list" class="space-y-2"></div>
+        <section id="panel-1" class="step-panel">
+            <h2 class="font-bold mb-3 text-slate-500"><i class="fas fa-database mr-2"></i>คลังสินค้าหลัก</h2>
+            <div id="inventory-display" class="grid grid-cols-1 gap-2"></div>
         </section>
 
-        <section id="step-2" class="step-card space-y-3">
-            <h2 class="font-bold text-lg">เลือกของใส่ตะกร้า</h2>
-            <div id="selection-list" class="space-y-2"></div>
+        <section id="panel-2" class="step-panel hidden">
+            <h2 class="font-bold mb-1 text-slate-800">เลือกของที่จะซื้อวันนี้</h2>
+            <p class="text-xs text-slate-400 mb-4">* ติ๊กเลือกรายการที่คุณต้องการซื้อในรอบนี้</p>
+            <div id="selection-display" class="space-y-2"></div>
         </section>
 
-        <section id="step-3" class="step-card space-y-4">
-            <h2 class="font-bold text-lg text-center">วันนี้จะใช้เงินเท่าไหร่?</h2>
-            <input type="number" id="budget-input" oninput="updateBudget(this.value)" placeholder="ใส่จำนวนเงิน..." class="w-full text-center text-4xl font-bold p-5 rounded-2xl border-2 border-indigo-200 outline-none focus:border-indigo-500">
-            <p class="text-center text-slate-400 text-sm">เฉลี่ยครั้งที่แล้วคุณใช้ไป ฿4,500</p>
+        <section id="panel-3" class="step-panel hidden text-center pt-10">
+            <i class="fas fa-wallet text-5xl text-indigo-200 mb-4"></i>
+            <h2 class="font-bold text-xl mb-6">ตั้งงบการซื้อครั้งนี้</h2>
+            <input type="number" id="input-budget" oninput="saveBudget()" placeholder="0.00" class="w-full max-w-[250px] text-center text-4xl font-bold p-4 rounded-3xl bg-white border-2 border-indigo-100 outline-none focus:border-indigo-500 shadow-inner">
         </section>
 
-        <section id="step-4" class="step-card space-y-3">
-            <div class="flex justify-between items-center">
-                <h2 class="font-bold text-lg">ลำดับการซื้อ (ตามที่เคยไป)</h2>
-                <button class="text-xs text-indigo-600 font-bold">ปรับแต่งเอง</button>
-            </div>
-            <div id="route-list" class="space-y-2"></div>
+        <section id="panel-4" class="step-panel hidden">
+            <h2 class="font-bold mb-4 text-slate-800">เส้นทางเดินตลาด (จำจากครั้งก่อน)</h2>
+            <div id="route-display" class="space-y-3"></div>
+            <p class="text-[10px] text-slate-400 mt-6 text-center italic">ระบบเรียงลำดับร้านที่คุณเคยซื้อก่อน-หลังให้อัตโนมัติ</p>
         </section>
 
-        <section id="step-5" class="step-card space-y-3">
-            <h2 class="font-bold text-lg">กำลังจ่ายตลาด...</h2>
-            <div id="shopping-mode-list" class="space-y-3"></div>
+        <section id="panel-5" class="step-panel hidden">
+            <div id="shopping-display" class="space-y-3"></div>
         </section>
     </main>
 
-    <div id="calc-overlay" class="fixed inset-0 bg-white z-[100] hidden flex flex-col p-6">
+    <div id="calc-modal" class="fixed inset-0 bg-slate-900/95 z-[100] hidden flex flex-col p-6 text-white">
         <div class="flex justify-between items-center mb-6">
-            <h2 id="target-name" class="text-2xl font-bold">ชื่อสินค้า</h2>
-            <button onclick="savePrice()" class="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold">บันทึก</button>
+            <h2 id="calc-name" class="text-2xl font-bold">ชื่อสินค้า</h2>
+            <button onclick="confirmPrice()" class="bg-indigo-600 px-10 py-3 rounded-2xl font-bold">บันทึก</button>
         </div>
-        <div id="warning-box" class="hidden mb-4 p-4 bg-red-50 text-red-600 rounded-xl border border-red-200 warning-pulse">
-            <i class="fas fa-exclamation-triangle mr-2"></i> <strong>เตือน:</strong> ราคาสูงกว่าครั้งที่แล้ว!
+        
+        <div id="price-warning" class="hidden mb-4 p-4 bg-red-600 rounded-xl flex items-center gap-3 warning-blink">
+            <i class="fas fa-exclamation-circle text-xl"></i>
+            <div class="text-sm">ราคาสูงกว่าครั้งที่แล้ว! (เดิม ฿<span id="old-p">0</span>)</div>
         </div>
-        <div class="bg-slate-100 p-6 rounded-2xl mb-6 text-center">
-            <p class="text-slate-400 text-sm mb-1 uppercase font-bold">ราคาครั้งนี้</p>
-            <div id="num-display" class="text-5xl font-bold text-slate-800">0</div>
+
+        <div class="bg-white/10 p-8 rounded-3xl mb-6 text-center border border-white/10">
+            <p class="text-xs opacity-50 uppercase mb-2">ราคาซื้อครั้งนี้</p>
+            <div id="calc-display" class="text-6xl font-bold text-indigo-400">0</div>
         </div>
+
         <div class="grid grid-cols-3 gap-3 flex-1">
-            <button onclick="press('7')" class="h-16 bg-slate-50 rounded-xl text-xl font-bold">7</button>
-            <button onclick="press('8')" class="h-16 bg-slate-50 rounded-xl text-xl font-bold">8</button>
-            <button onclick="press('9')" class="h-16 bg-slate-50 rounded-xl text-xl font-bold">9</button>
-            <button onclick="press('4')" class="h-16 bg-slate-50 rounded-xl text-xl font-bold">4</button>
-            <button onclick="press('5')" class="h-16 bg-slate-50 rounded-xl text-xl font-bold">5</button>
-            <button onclick="press('6')" class="h-16 bg-slate-50 rounded-xl text-xl font-bold">6</button>
-            <button onclick="press('1')" class="h-16 bg-slate-50 rounded-xl text-xl font-bold">1</button>
-            <button onclick="press('2')" class="h-16 bg-slate-50 rounded-xl text-xl font-bold">2</button>
-            <button onclick="press('3')" class="h-16 bg-slate-50 rounded-xl text-xl font-bold">3</button>
-            <button onclick="press('C')" class="h-16 bg-red-50 text-red-500 rounded-xl text-xl font-bold">C</button>
-            <button onclick="press('0')" class="h-16 bg-slate-50 rounded-xl text-xl font-bold">0</button>
-            <button onclick="closeCalc()" class="h-16 text-slate-400 font-bold">ปิด</button>
+            <button onclick="num('7')" class="bg-white/5 rounded-2xl text-2xl font-bold active:bg-indigo-500">7</button>
+            <button onclick="num('8')" class="bg-white/5 rounded-2xl text-2xl font-bold active:bg-indigo-500">8</button>
+            <button onclick="num('9')" class="bg-white/5 rounded-2xl text-2xl font-bold active:bg-indigo-500">9</button>
+            <button onclick="num('4')" class="bg-white/5 rounded-2xl text-2xl font-bold active:bg-indigo-500">4</button>
+            <button onclick="num('5')" class="bg-white/5 rounded-2xl text-2xl font-bold active:bg-indigo-500">5</button>
+            <button onclick="num('6')" class="bg-white/5 rounded-2xl text-2xl font-bold active:bg-indigo-500">6</button>
+            <button onclick="num('1')" class="bg-white/5 rounded-2xl text-2xl font-bold active:bg-indigo-500">1</button>
+            <button onclick="num('2')" class="bg-white/5 rounded-2xl text-2xl font-bold active:bg-indigo-500">2</button>
+            <button onclick="num('3')" class="bg-white/5 rounded-2xl text-2xl font-bold active:bg-indigo-500">3</button>
+            <button onclick="num('C')" class="bg-red-500/20 text-red-400 rounded-2xl text-2xl font-bold">C</button>
+            <button onclick="num('0')" class="bg-white/5 rounded-2xl text-2xl font-bold active:bg-indigo-500">0</button>
+            <button onclick="closeCalc()" class="text-slate-500">ปิด</button>
         </div>
     </div>
 
     <script>
-        let items = [
-            { id: 1, name: 'แซลมอนนอร์เวย์', prevPrice: 450, selected: false, order: 1, now: 0 },
-            { id: 2, name: 'หัวไชเท้า', prevPrice: 20, selected: false, order: 3, now: 0 },
-            { id: 3, name: 'โชยุ แกลลอน', prevPrice: 520, selected: false, order: 2, now: 0 },
-            { id: 4, name: 'ข้าวญี่ปุ่น', prevPrice: 1100, selected: false, order: 4, now: 0 }
+        // ข้อมูลหลักของร้าน (จำลอง Database)
+        let db = [
+            { id: 1, name: 'แซลมอน (ตัว)', prev: 450, shop: 'เจ๊แดง', order: 1, selected: false, now: 0 },
+            { id: 2, name: 'ทูน่า (ชิ้น)', prev: 800, shop: 'Interfish', order: 2, selected: false, now: 0 },
+            { id: 3, name: 'หัวไชเท้า', prev: 20, shop: 'แผงป้า', order: 4, selected: false, now: 0 },
+            { id: 4, name: 'ไข่กุ้ง', prev: 150, shop: 'ของสดA', order: 3, selected: false, now: 0 },
+            { id: 5, name: 'ข้าวญี่ปุ่น', prev: 1200, shop: 'Makro', order: 5, selected: false, now: 0 }
         ];
-        let budget = 0;
-        let activeIdx = null;
-        let tempVal = "";
 
-        function changeStep(step) {
-            document.querySelectorAll('.step-card').forEach(s => s.classList.remove('active'));
-            document.getElementById(`step-${step}`).classList.add('active');
-            document.getElementById('budget-header').classList.toggle('hidden', step < 5);
-            renderAll();
+        let budget = 0;
+        let activeId = null;
+        let typedVal = "";
+
+        function showStep(step) {
+            document.querySelectorAll('.step-panel').forEach(p => p.classList.add('hidden'));
+            document.querySelectorAll('.step-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`panel-${step}`).classList.remove('hidden');
+            document.getElementById(`btn-step${step}`).classList.add('active');
+            document.getElementById('budget-bar').classList.toggle('hidden', step != 5);
+            render();
         }
 
-        function renderAll() {
-            // Render Step 1
-            document.getElementById('inventory-list').innerHTML = items.map(i => `
-                <div class="p-4 bg-white rounded-xl shadow-sm border border-slate-100 flex justify-between items-center">
-                    <span class="font-bold">${i.name}</span>
-                    <span class="text-xs text-slate-400">ล่าสุด ฿${i.prevPrice}</span>
+        function render() {
+            // Step 1: คลังสินค้า
+            document.getElementById('inventory-display').innerHTML = db.map(i => `
+                <div class="p-4 bg-white border border-slate-100 rounded-xl flex justify-between items-center shadow-sm">
+                    <span class="font-bold text-slate-700">${i.name}</span>
+                    <span class="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-md">฿ ${i.prev}</span>
                 </div>
             `).join('');
 
-            // Render Step 2
-            document.getElementById('selection-list').innerHTML = items.map(i => `
-                <div onclick="toggleSelect(${i.id})" class="p-4 rounded-xl border-2 transition-all ${i.selected ? 'border-indigo-500 bg-indigo-50' : 'border-white bg-white'}">
-                    <div class="flex justify-between items-center">
-                        <span class="font-bold ${i.selected ? 'text-indigo-700' : ''}">${i.name}</span>
-                        <i class="fas ${i.selected ? 'fa-check-circle text-indigo-500' : 'fa-circle text-slate-200'}"></i>
+            // Step 2: เลือกของ (Checklist)
+            document.getElementById('selection-display').innerHTML = db.map(i => `
+                <div onclick="toggleSelect(${i.id})" class="item-row p-4 border-2 bg-white flex justify-between items-center cursor-pointer mb-2 ${i.selected ? 'selected' : 'border-transparent shadow-sm'}">
+                    <span class="font-bold ${i.selected ? 'text-indigo-700' : 'text-slate-600'}">${i.name}</span>
+                    <i class="fas ${i.selected ? 'fa-check-circle text-indigo-500' : 'fa-circle text-slate-100'} text-xl"></i>
+                </div>
+            `).join('');
+
+            // Step 4: ลำดับการเดิน
+            const picked = db.filter(i => i.selected).sort((a,b) => a.order - b.order);
+            document.getElementById('route-display').innerHTML = picked.map((i, idx) => `
+                <div class="p-4 bg-white rounded-2xl flex items-center gap-4 border border-slate-100 shadow-sm">
+                    <div class="w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-sm">${idx + 1}</div>
+                    <div class="flex-1">
+                        <p class="font-bold text-slate-800">${i.name}</p>
+                        <p class="text-[10px] text-slate-400">ร้าน: ${i.shop}</p>
                     </div>
+                    <i class="fas fa-map-marker-alt text-red-400"></i>
                 </div>
             `).join('');
 
-            // Render Step 4 (Sorted by order)
-            const sorted = [...items].filter(i => i.selected).sort((a,b) => a.order - b.order);
-            document.getElementById('route-list').innerHTML = sorted.map((i, idx) => `
-                <div class="p-4 bg-white rounded-xl flex items-center gap-4">
-                    <span class="bg-slate-800 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">${idx + 1}</span>
-                    <span class="font-bold flex-1">${i.name}</span>
-                    <i class="fas fa-bars text-slate-300"></i>
-                </div>
-            `).join('');
-
-            // Render Step 5
-            const shopping = [...items].filter(i => i.selected).sort((a,b) => a.order - b.order);
-            document.getElementById('shopping-mode-list').innerHTML = shopping.map(i => `
-                <div onclick="openCalc(${i.id})" class="p-5 bg-white rounded-2xl shadow-sm border-l-8 ${i.now > 0 ? (i.now > i.prevPrice ? 'border-red-500' : 'border-green-500') : 'border-slate-200'}">
+            // Step 5: จ่ายจริง
+            document.getElementById('shopping-display').innerHTML = picked.map(i => `
+                <div onclick="openCalc(${i.id})" class="p-5 rounded-3xl bg-white shadow-sm border-2 ${i.now > 0 ? (i.now > i.prev ? 'border-red-400' : 'border-green-400') : 'border-slate-100'}">
                     <div class="flex justify-between items-center">
                         <div>
-                            <h3 class="font-bold">${i.name}</h3>
-                            <p class="text-[10px] text-slate-400">ราคาเดิม ฿${i.prevPrice}</p>
+                            <h3 class="font-bold text-lg">${i.name}</h3>
+                            <p class="text-xs text-slate-400 italic">ร้าน ${i.shop} | เดิม ฿${i.prev}</p>
                         </div>
                         <div class="text-right">
-                            <p class="text-xl font-bold">${i.now > 0 ? '฿'+i.now : 'กดใส่ราคา'}</p>
+                            <p class="text-2xl font-bold ${i.now > 0 ? 'text-slate-800' : 'text-slate-200'}">${i.now > 0 ? '฿'+i.now : 'คีย์ราคา'}</p>
                         </div>
                     </div>
                 </div>
             `).join('');
 
-            const spent = items.reduce((s, i) => s + (i.now || 0), 0);
-            document.getElementById('display-spent').innerText = `฿ ${spent.toLocaleString()}`;
+            const spent = db.reduce((s, i) => s + (i.now || 0), 0);
+            document.getElementById('view-spent').innerText = `฿ ${spent.toLocaleString()}`;
         }
 
         function toggleSelect(id) {
-            const item = items.find(i => i.id === id);
+            const item = db.find(i => i.id === id);
             item.selected = !item.selected;
-            renderAll();
+            render();
         }
 
-        function updateBudget(val) {
-            budget = parseInt(val) || 0;
-            document.getElementById('display-budget').innerText = `฿ ${budget.toLocaleString()}`;
+        function saveBudget() {
+            budget = document.getElementById('input-budget').value || 0;
+            document.getElementById('view-budget').innerText = `฿ ${parseFloat(budget).toLocaleString()}`;
         }
 
         function openCalc(id) {
-            const item = items.find(i => i.id === id);
-            activeIdx = items.indexOf(item);
-            tempVal = "";
-            document.getElementById('target-name').innerText = item.name;
-            document.getElementById('num-display').innerText = "0";
-            document.getElementById('calc-overlay').classList.remove('hidden');
-            document.getElementById('warning-box').classList.add('hidden');
+            activeId = id;
+            const item = db.find(i => i.id === id);
+            typedVal = "";
+            document.getElementById('calc-name').innerText = item.name;
+            document.getElementById('old-p').innerText = item.prev;
+            document.getElementById('calc-display').innerText = "0";
+            document.getElementById('calc-modal').classList.remove('hidden');
+            document.getElementById('price-warning').classList.add('hidden');
         }
 
-        function press(key) {
-            if(key === 'C') tempVal = "";
-            else tempVal += key;
-            document.getElementById('num-display').innerText = tempVal || "0";
+        function num(k) {
+            if(k === 'C') typedVal = "";
+            else typedVal += k;
+            document.getElementById('calc-display').innerText = typedVal || "0";
             
-            // ตรวจสอบราคาแบบ Real-time เพื่อขึ้นเตือน
-            const currentPrice = parseInt(tempVal) || 0;
-            if(currentPrice > items[activeIdx].prevPrice) {
-                document.getElementById('warning-box').classList.remove('hidden');
+            const item = db.find(i => i.id === activeId);
+            if(parseInt(typedVal) > item.prev) {
+                document.getElementById('price-warning').classList.remove('hidden');
             } else {
-                document.getElementById('warning-box').classList.add('hidden');
+                document.getElementById('price-warning').classList.add('hidden');
             }
         }
 
-        function savePrice() {
-            items[activeIdx].now = parseInt(tempVal) || 0;
+        function confirmPrice() {
+            const item = db.find(i => i.id === activeId);
+            item.now = parseInt(typedVal) || 0;
             closeCalc();
-            renderAll();
+            render();
         }
 
-        function closeCalc() {
-            document.getElementById('calc-overlay').classList.add('hidden');
-        }
+        function closeCalc() { document.getElementById('calc-modal').classList.add('hidden'); }
 
-        renderAll();
+        render();
     </script>
 </body>
 </html>
