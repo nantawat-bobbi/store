@@ -66,4 +66,76 @@
             <button onclick="press('3')" class="numpad-btn">3</button>
             <button onclick="press('C')" class="numpad-btn text-red-500">C</button>
             <button onclick="press('0')" class="numpad-btn">0</button>
-            <button onclick="closeCalc(false)" class="numpad-btn text-slate-500">
+            <button onclick="closeCalc(false)" class="numpad-btn text-slate-500"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+
+    <script>
+        let currentCat = 'all';
+        const products = [
+            { id: 1, cat: 'seafood', name: 'แซลมอน (Trim C)', qty: '5 ตัว', prev: 420, shop: 'เจ๊หงส์', now: 0 },
+            { id: 2, cat: 'seafood', name: 'ทูน่า Saku', qty: '2 กก.', prev: 850, shop: 'Interfish', now: 0 },
+            { id: 3, cat: 'veg', name: 'หัวไชเท้า (ขูด)', qty: '10 กก.', prev: 25, shop: 'ตลาดไท', now: 0 },
+            { id: 4, cat: 'veg', name: 'โชยุ (แกลลอน)', qty: '2 ถัง', prev: 550, shop: 'Makro', now: 0 },
+            { id: 5, cat: 'dry', name: 'ข้าวญี่ปุ่น (A)', qty: '2 กระสอบ', prev: 1200, shop: 'ร้านเฮียตง', now: 0 }
+        ];
+
+        let activeIdx = null;
+        let tempVal = "";
+
+        function filterCat(cat) {
+            currentCat = cat;
+            document.querySelectorAll('.category-pill').forEach(btn => {
+                btn.classList.remove('active');
+                if(btn.innerText.includes(cat === 'all' ? 'ทั้งหมด' : (cat === 'seafood' ? 'ของสด' : cat === 'veg' ? 'ผัก' : 'ของแห้ง'))) btn.classList.add('active');
+            });
+            render();
+        }
+
+        function render() {
+            const container = document.getElementById('list-container');
+            const filtered = currentCat === 'all' ? products : products.filter(p => p.cat === currentCat);
+            
+            container.innerHTML = filtered.map((p, idx) => `
+                <div onclick="openCalc(${p.id})" class="item-card p-5 flex justify-between items-center active:scale-95 transition-transform ${p.now > 0 ? 'border-green-500/50' : ''}">
+                    <div>
+                        <h3 class="text-lg font-bold">${p.name}</h3>
+                        <p class="text-xs text-slate-400">เป้าหมาย: ${p.qty} | เดิม ฿${p.prev} (${p.shop})</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xl font-bold ${p.now > 0 ? 'text-green-400' : 'text-slate-600'}">฿ ${p.now || '???'}</p>
+                        ${p.now > 0 ? `<span class="text-[10px] ${p.now <= p.prev ? 'text-green-400' : 'text-red-400'}">${p.now <= p.prev ? '✓ ถูกกว่าเดิม' : '⚠ แพงขึ้น!'}</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+            
+            const total = products.reduce((s, i) => s + (i.now || 0), 0);
+            document.getElementById('total').innerText = `฿ ${total.toLocaleString()}`;
+        }
+
+        function openCalc(id) {
+            const item = products.find(p => p.id === id);
+            activeIdx = products.indexOf(item);
+            tempVal = "";
+            document.getElementById('target-name').innerText = item.name;
+            document.getElementById('compare-info').innerText = `${item.shop} ล่าสุด: ฿${item.prev}`;
+            document.getElementById('num-display').innerText = "0";
+            document.getElementById('calc-overlay').classList.remove('hidden');
+        }
+
+        function press(key) {
+            if(key === 'C') tempVal = "";
+            else tempVal += key;
+            document.getElementById('num-display').innerText = tempVal || "0";
+        }
+
+        function closeCalc(save) {
+            if(save) products[activeIdx].now = parseInt(tempVal) || 0;
+            document.getElementById('calc-overlay').classList.add('hidden');
+            render();
+        }
+
+        render();
+    </script>
+</body>
+</html>
