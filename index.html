@@ -3,118 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Fast Market v2</title>
+    <title>Price Brain - ตัวช่วยต่อราคา</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Sarabun', sans-serif; overflow: hidden; height: 100vh; background: #1a1c1e; }
-        /* การ์ดใหญ่ๆ ให้กดง่าย */
-        .item-btn { height: 80px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-radius: 20px; background: #2d2f31; margin-bottom: 10px; transition: 0.1s; }
-        .item-btn:active { transform: scale(0.95); background: #3d3f41; }
-        .item-btn.bought { background: #059669; border: 2px solid #10b981; }
-        .numpad-btn { background: #3d3f41; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; color: white; }
-        .numpad-btn:active { background: #4f46e5; }
+        body { font-family: 'Sarabun', sans-serif; background: #0f172a; color: white; }
+        .price-card { background: #1e293b; border-radius: 20px; transition: 0.2s; border: 1px solid #334155; }
+        .price-card.higher { border: 1px solid #ef4444; }
+        .price-card.lower { border: 1px solid #22c55e; }
+        .numpad-btn { background: #334155; height: 55px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: bold; }
+        .numpad-btn:active { background: #6366f1; }
+        #camera-preview { display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 15px; }
     </style>
 </head>
-<body class="flex flex-col text-white">
+<body class="pb-20">
 
-    <div class="p-6 bg-indigo-600 rounded-b-[40px] shadow-xl">
-        <p class="text-indigo-200 text-sm">ยอดจ่ายจริงตอนนี้</p>
-        <h1 id="display-total" class="text-4xl font-bold">฿ 0</h1>
+    <div class="sticky top-0 bg-slate-900/80 backdrop-blur-md p-4 z-50 flex justify-between items-center border-b border-slate-700">
+        <div>
+            <h1 class="text-xl font-bold">สรุปยอดวันนี้</h1>
+            <p id="grand-total" class="text-2xl text-green-400 font-bold">฿ 0</p>
+        </div>
+        <button onclick="document.getElementById('hidden-input').click()" class="bg-indigo-600 w-12 h-12 rounded-full shadow-lg flex items-center justify-center">
+            <i class="fas fa-plus text-xl"></i>
+        </button>
     </div>
 
-    <main class="flex-1 overflow-y-auto p-4 space-y-2">
-        <div id="list-container">
-            <div class="item-btn" onclick="focusItem(this, 'อกไก่', 1)">
-                <div>
-                    <div class="text-xl font-bold">อกไก่</div>
-                    <div class="text-sm text-gray-400">สั่งไว้ 10 กก.</div>
-                </div>
-                <div class="text-right">
-                    <div class="item-price text-xl font-bold">฿ 0</div>
-                </div>
+    <main id="list-container" class="p-4 space-y-4">
+        </main>
+
+    <div id="calc-overlay" class="fixed inset-0 bg-slate-900/95 z-[60] hidden flex flex-col p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 id="edit-title" class="text-xl font-bold text-indigo-400 italic">ชื่อสินค้า</h2>
+            <button onclick="closeCalc(true)" class="bg-green-600 px-8 py-2 rounded-xl font-bold text-lg">บันทึก</button>
+        </div>
+
+        <div class="bg-slate-800 p-4 rounded-2xl mb-4 flex justify-between border-l-4 border-yellow-500">
+            <div>
+                <p class="text-[10px] uppercase text-slate-400">ราคาล่าสุด</p>
+                <p id="prev-price" class="text-lg font-bold text-white">฿ 0</p>
+            </div>
+            <div class="text-right">
+                <p class="text-[10px] uppercase text-slate-400">ร้าน/วันที่</p>
+                <p id="prev-info" class="text-sm text-slate-300">-</p>
             </div>
         </div>
-    </main>
 
-    <div id="calculator" class="bg-gray-800 p-4 rounded-t-[30px] hidden shadow-2xl border-t border-gray-700">
-        <div class="flex justify-between items-center mb-4">
-            <span id="target-name" class="text-lg font-bold text-indigo-400">กำลังใส่ราคา...</span>
-            <button onclick="closeCalc(true)" class="bg-green-600 px-6 py-2 rounded-xl font-bold">เสร็จ</button>
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="bg-slate-800 p-3 rounded-2xl">
+                <label class="text-[10px] text-slate-400">ราคาซื้อครั้งนี้</label>
+                <div id="new-price-display" class="text-2xl font-bold text-indigo-400">0</div>
+            </div>
+            <div class="bg-slate-800 p-3 rounded-2xl">
+                <label class="text-[10px] text-slate-400">ร้านค้า (สั้นๆ)</label>
+                <input type="text" id="shop-name" class="bg-transparent w-full font-bold text-white outline-none" placeholder="เช่น ร้านA">
+            </div>
         </div>
-        <div class="grid grid-cols-3 gap-2">
-            <div class="numpad-btn" onclick="press('1')">1</div>
-            <div class="numpad-btn" onclick="press('2')">2</div>
-            <div class="numpad-btn" onclick="press('3')">3</div>
+
+        <div class="flex gap-2 mb-4 h-24">
+            <div onclick="takePhoto()" class="w-1/3 bg-slate-800 rounded-2xl flex flex-col items-center justify-center border-2 border-dashed border-slate-600 relative overflow-hidden">
+                <i class="fas fa-camera text-2xl mb-1"></i>
+                <span class="text-[10px]">ถ่ายรูป</span>
+                <img id="temp-img" class="absolute inset-0 w-full h-full object-cover hidden">
+            </div>
+            <div class="w-2/3 grid grid-cols-3 gap-2">
+                <div class="numpad-btn" onclick="press('7')">7</div>
+                <div class="numpad-btn" onclick="press('8')">8</div>
+                <div class="numpad-btn" onclick="press('9')">9</div>
+            </div>
+        </div>
+        <div class="grid grid-cols-3 gap-2 flex-1">
             <div class="numpad-btn" onclick="press('4')">4</div>
             <div class="numpad-btn" onclick="press('5')">5</div>
             <div class="numpad-btn" onclick="press('6')">6</div>
-            <div class="numpad-btn" onclick="press('7')">7</div>
-            <div class="numpad-btn" onclick="press('8')">8</div>
-            <div class="numpad-btn" onclick="press('9')">9</div>
-            <div class="numpad-btn text-red-400" onclick="press('C')">C</div>
+            <div class="numpad-btn" onclick="press('1')">1</div>
+            <div class="numpad-btn" onclick="press('2')">2</div>
+            <div class="numpad-btn" onclick="press('3')">3</div>
+            <div class="numpad-btn text-red-400 font-bold" onclick="press('C')">ล้าง</div>
             <div class="numpad-btn" onclick="press('0')">0</div>
-            <div class="numpad-btn" onclick="closeCalc(false)">✕</div>
+            <div class="numpad-btn text-slate-400" onclick="closeCalc(false)">ปิด</div>
         </div>
     </div>
 
-    <script>
-        let currentItem = null;
-        let tempValue = "";
-        const data = [
-            { name: 'อกไก่', qty: '10 กก.' },
-            { name: 'หมูสับ', qty: '5 กก.' },
-            { name: 'ไข่เบอร์ 2', qty: '10 แผง' },
-            { name: 'ผักบุ้ง', qty: '20 กำ' }
-        ];
+    <input type="file" id="photo-input" accept="image/*" capture="environment" class="hidden">
+    <button id="hidden-input" onclick="addNew()" class="hidden"></button>
 
-        function render() {
+    <script>
+        let db = JSON.parse(localStorage.getItem('price_db')) || [
+            { name: 'อกไก่', qty: '10กก.', lastPrice: 145, lastDate: '5 พ.ค.', lastShop: 'ป้าแดง', currentPrice: 0, photo: null },
+            { name: 'มะนาว', qty: '100ลูก', lastPrice: 350, lastDate: '4 พ.ค.', lastShop: 'แผง3', currentPrice: 0, photo: null }
+        ];
+        let currentIdx = null;
+        let tempValue = "";
+
+        function renderList() {
             const container = document.getElementById('list-container');
-            container.innerHTML = data.map((item, idx) => `
-                <div id="item-${idx}" class="item-btn ${item.price > 0 ? 'bought' : ''}" onclick="focusItem(${idx})">
-                    <div>
-                        <div class="text-xl font-bold">${item.name}</div>
-                        <div class="text-sm ${item.price > 0 ? 'text-indigo-100' : 'text-gray-400'}">${item.qty}</div>
-                    </div>
-                    <div class="text-right text-xl font-bold">
-                        ฿ ${item.price || 0}
+            container.innerHTML = db.map((item, idx) => {
+                const diff = item.currentPrice > 0 ? item.currentPrice - item.lastPrice : 0;
+                const statusClass = diff > 0 ? 'higher' : (diff < 0 ? 'lower' : '');
+                const diffText = diff > 0 ? `แพงขึ้น ฿${diff}` : (diff < 0 ? `ถูกลง ฿${Math.abs(diff)}` : '');
+
+                return `
+                <div class="price-card p-4 ${statusClass}" onclick="openCalc(${idx})">
+                    <div class="flex gap-4">
+                        <div class="w-16 h-16 bg-slate-700 rounded-xl overflow-hidden flex items-center justify-center">
+                            ${item.photo ? `<img src="${item.photo}" class="w-full h-full object-cover">` : '<i class="fas fa-image text-slate-500"></i>'}
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between">
+                                <h3 class="font-bold text-lg">${item.name}</h3>
+                                <span class="text-sm text-slate-400">${item.qty}</span>
+                            </div>
+                            <div class="flex justify-between items-end mt-1">
+                                <div>
+                                    <p class="text-[10px] text-slate-500">เดิม: ฿${item.lastPrice} (${item.lastShop})</p>
+                                    <p class="text-sm font-bold text-indigo-400">ใหม่: ฿${item.currentPrice || '-'}</p>
+                                </div>
+                                <div class="text-[10px] font-bold ${diff > 0 ? 'text-red-400' : 'text-green-400'}">
+                                    ${diffText}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
+            updateTotal();
         }
 
-        function focusItem(idx) {
-            currentItem = idx;
-            tempValue = "";
-            document.getElementById('target-name').innerText = "ใส่ราคา: " + data[idx].name;
-            document.getElementById('calculator').classList.remove('hidden');
+        function openCalc(idx) {
+            currentIdx = idx;
+            const item = db[idx];
+            tempValue = item.currentPrice > 0 ? item.currentPrice.toString() : "";
+            document.getElementById('edit-title').innerText = item.name;
+            document.getElementById('prev-price').innerText = "฿ " + item.lastPrice;
+            document.getElementById('prev-info').innerText = `${item.lastShop} | ${item.lastDate}`;
+            document.getElementById('new-price-display').innerText = tempValue || "0";
+            document.getElementById('shop-name').value = item.currentShop || "";
+            document.getElementById('temp-img').src = item.photo || "";
+            document.getElementById('temp-img').classList.toggle('hidden', !item.photo);
+            document.getElementById('calc-overlay').classList.remove('hidden');
         }
 
         function press(num) {
-            if (num === 'C') {
-                tempValue = "";
-            } else {
-                tempValue += num;
-            }
-            document.getElementById('display-total').innerText = "฿ " + (tempValue || "0");
+            if (num === 'C') tempValue = "";
+            else tempValue += num;
+            document.getElementById('new-price-display').innerText = tempValue || "0";
         }
+
+        function takePhoto() {
+            document.getElementById('photo-input').click();
+        }
+
+        document.getElementById('photo-input').onchange = e => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = event => {
+                const base64 = event.target.result;
+                document.getElementById('temp-img').src = base64;
+                document.getElementById('temp-img').classList.remove('hidden');
+                if (currentIdx !== null) db[currentIdx].photo = base64;
+            };
+            reader.readAsDataURL(file);
+        };
 
         function closeCalc(save) {
-            if (save && currentItem !== null) {
-                data[currentItem].price = parseInt(tempValue) || 0;
+            if (save && currentIdx !== null) {
+                db[currentIdx].currentPrice = parseInt(tempValue) || 0;
+                db[currentIdx].currentShop = document.getElementById('shop-name').value;
             }
-            document.getElementById('calculator').classList.add('hidden');
-            render();
-            updateGrandTotal();
+            document.getElementById('calc-overlay').classList.add('hidden');
+            localStorage.setItem('price_db', JSON.stringify(db));
+            renderList();
         }
 
-        function updateGrandTotal() {
-            const total = data.reduce((sum, i) => sum + (i.price || 0), 0);
-            document.getElementById('display-total').innerText = "฿ " + total.toLocaleString();
+        function addNew() {
+            const name = prompt("ชื่อสินค้าใหม่:");
+            if(name) {
+                db.push({ name, qty: '1 หน่วย', lastPrice: 0, lastDate: '-', lastShop: '-', currentPrice: 0, photo: null });
+                renderList();
+            }
         }
 
-        data.forEach(i => i.price = 0);
-        render();
+        function updateTotal() {
+            const total = db.reduce((sum, i) => sum + (i.currentPrice || 0), 0);
+            document.getElementById('grand-total').innerText = "฿ " + total.toLocaleString();
+        }
+
+        renderList();
     </script>
 </body>
 </html>
