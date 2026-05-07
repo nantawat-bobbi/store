@@ -3,178 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>MarketBrain PRO</title>
+    <title>MarketBrain: Salmon Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: 'Sarabun', sans-serif; -webkit-tap-highlight-color: transparent; }
-        input[type="number"] { -moz-appearance: textfield; }
-        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
-        .active-ring { border: 3px solid #6366f1 !important; box-shadow: 0 0 15px rgba(99, 102, 241, 0.3); }
-        .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+        body { font-family: 'Sarabun', sans-serif; background: #0f172a; color: white; }
+        .category-pill { transition: 0.3s; white-space: nowrap; }
+        .category-pill.active { background: #ef4444; color: white; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4); }
+        .item-card { background: #1e293b; border-radius: 24px; border: 1px solid #334155; }
+        .numpad-btn { background: #334155; height: 60px; border-radius: 16px; font-size: 1.5rem; font-weight: bold; }
+        .numpad-btn:active { background: #ef4444; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased h-screen flex flex-col overflow-hidden">
+<body class="flex flex-col h-screen overflow-hidden">
 
-    <header class="bg-indigo-700 p-5 pt-8 text-white shrink-0 rounded-b-[2rem] shadow-lg z-20">
-        <div class="flex justify-between items-center mb-2">
-            <span class="text-indigo-100 text-sm font-medium tracking-wide">ยอดรวมวันนี้</span>
-            <button onclick="resetData()" class="opacity-70 text-xs bg-indigo-800 px-3 py-1 rounded-full text-white">เริ่มใหม่</button>
+    <header class="bg-slate-900 p-4 pt-8 shrink-0">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-red-500"><i class="fas fa-fish mr-2"></i>Salmon<span class="text-white">Log</span></h1>
+            <div class="text-right">
+                <p class="text-[10px] text-slate-400 uppercase">งบวันนี้</p>
+                <p id="total" class="text-xl font-bold text-green-400">฿ 0</p>
+            </div>
         </div>
-        <div class="text-4xl font-bold tracking-tight">฿ <span id="grand-total">0</span></div>
+        
+        <div class="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+            <button onclick="filterCat('all')" class="category-pill active px-6 py-2 rounded-full bg-slate-800 text-sm font-bold">ทั้งหมด</button>
+            <button onclick="filterCat('seafood')" class="category-pill px-6 py-2 rounded-full bg-slate-800 text-sm font-bold">ของสด/ปลา</button>
+            <button onclick="filterCat('veg')" class="category-pill px-6 py-2 rounded-full bg-slate-800 text-sm font-bold">ผัก/เครื่องเคียง</button>
+            <button onclick="filterCat('dry')" class="category-pill px-6 py-2 rounded-full bg-slate-800 text-sm font-bold">ของแห้ง/ซอส</button>
+        </div>
     </header>
 
-    <main id="list-container" class="flex-1 overflow-y-auto p-4 space-y-3 pb-32 pt-2">
+    <main id="list-container" class="flex-1 overflow-y-auto p-4 space-y-4 pb-40">
         </main>
 
-    <div id="calc-panel" class="fixed inset-x-0 bottom-0 bg-white shadow-[0_-10px_40px_rgba(0,0,0,0.2)] rounded-t-[2.5rem] z-50 transform translate-y-full transition-transform duration-300 ease-out safe-area-bottom">
-        <div class="p-6">
-            <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6"></div>
-            
-            <div class="flex justify-between items-start mb-5">
-                <div>
-                    <h2 id="target-name" class="text-2xl font-bold text-slate-800 truncate max-w-[200px]">ชื่อสินค้า</h2>
-                    <p id="history-text" class="text-sm text-slate-400 mt-1 italic">ล่าสุด: ฿0 (ร้านA)</p>
-                </div>
-                <button onclick="closeCalc(true)" class="bg-indigo-600 text-white px-8 py-3 rounded-2xl font-bold text-lg shadow-lg active:scale-95 transition-all">บันทึก</button>
-            </div>
+    <div id="calc-overlay" class="fixed inset-0 bg-slate-900/98 z-[100] hidden flex flex-col p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 id="target-name" class="text-2xl font-bold">แซลมอนนอร์เวย์</h2>
+            <button onclick="closeCalc(true)" class="bg-red-600 px-10 py-3 rounded-2xl font-bold text-xl">บันทึก</button>
+        </div>
 
-            <div class="flex gap-3 mb-6">
-                <div class="flex-1 bg-slate-100 p-4 rounded-2xl">
-                    <span class="text-[10px] text-slate-400 uppercase font-bold block mb-1">ราคาที่ซื้อ</span>
-                    <div id="num-display" class="text-3xl font-bold text-indigo-600">0</div>
-                </div>
-                <div class="w-1/3 bg-slate-100 p-4 rounded-2xl relative overflow-hidden" onclick="takePhoto()">
-                    <span class="text-[10px] text-slate-400 uppercase font-bold block mb-1">ภาพ</span>
-                    <i id="camera-icon" class="fas fa-camera text-slate-300 text-2xl mt-1"></i>
-                    <img id="preview-img" class="absolute inset-0 w-full h-full object-cover hidden">
-                </div>
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
+                <p class="text-[10px] text-slate-500 uppercase font-bold mb-1">ราคาที่ต่อได้</p>
+                <div id="num-display" class="text-3xl font-bold text-red-500">0</div>
             </div>
-
-            <div class="grid grid-cols-3 gap-3">
-                <button onclick="press('1')" class="h-14 bg-slate-50 text-xl font-bold rounded-xl active:bg-indigo-100">1</button>
-                <button onclick="press('2')" class="h-14 bg-slate-50 text-xl font-bold rounded-xl active:bg-indigo-100">2</button>
-                <button onclick="press('3')" class="h-14 bg-slate-50 text-xl font-bold rounded-xl active:bg-indigo-100">3</button>
-                <button onclick="press('4')" class="h-14 bg-slate-50 text-xl font-bold rounded-xl active:bg-indigo-100">4</button>
-                <button onclick="press('5')" class="h-14 bg-slate-50 text-xl font-bold rounded-xl active:bg-indigo-100">5</button>
-                <button onclick="press('6')" class="h-14 bg-slate-50 text-xl font-bold rounded-xl active:bg-indigo-100">6</button>
-                <button onclick="press('7')" class="h-14 bg-slate-50 text-xl font-bold rounded-xl active:bg-indigo-100">7</button>
-                <button onclick="press('8')" class="h-14 bg-slate-50 text-xl font-bold rounded-xl active:bg-indigo-100">8</button>
-                <button onclick="press('9')" class="h-14 bg-slate-50 text-xl font-bold rounded-xl active:bg-indigo-100">9</button>
-                <button onclick="press('C')" class="h-14 text-red-500 font-bold bg-red-50 rounded-xl">ล้าง</button>
-                <button onclick="press('0')" class="h-14 bg-slate-50 text-xl font-bold rounded-xl active:bg-indigo-100">0</button>
-                <button onclick="closeCalc(false)" class="h-14 text-slate-400 font-bold">ปิด</button>
+            <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
+                <p class="text-[10px] text-slate-500 uppercase font-bold mb-1">เทียบร้านอื่น</p>
+                <p id="compare-info" class="text-sm text-slate-300">ลุงมี: ฿450</p>
             </div>
         </div>
-    </div>
 
-    <input type="file" id="cam-input" accept="image/*" capture="environment" class="hidden">
-    <button onclick="addItem()" class="fixed bottom-8 right-6 w-16 h-16 bg-slate-800 text-white rounded-full shadow-2xl z-40 active:scale-90 transition-transform">
-        <i class="fas fa-plus text-xl"></i>
-    </button>
-
-    <script>
-        let items = JSON.parse(localStorage.getItem('mb_v3_data')) || [
-            { id: 1, name: 'อกไก่', qty: '10กก.', prev: 145, shop: 'ป้าแดง', now: 0, img: null },
-            { id: 2, name: 'มะนาว', qty: '100ลูก', prev: 350, shop: 'แผง3', now: 0, img: null }
-        ];
-        let currentIdx = null;
-        let inputVal = "";
-
-        function render() {
-            const container = document.getElementById('list-container');
-            container.innerHTML = items.map((item, idx) => `
-                <div onclick="openCalc(${idx})" class="bg-white p-4 rounded-2xl flex items-center gap-4 card-shadow border-2 ${item.now > 0 ? (item.now > item.prev ? 'border-red-100' : 'border-green-100') : 'border-transparent'}">
-                    <div class="w-14 h-14 rounded-xl bg-slate-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
-                        ${item.img ? `<img src="${item.img}" class="w-full h-full object-cover">` : `<i class="fas fa-shopping-basket text-slate-300"></i>`}
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex justify-between items-start">
-                            <h3 class="font-bold text-slate-800 truncate">${item.name}</h3>
-                            <span class="text-[10px] bg-slate-100 px-2 py-0.5 rounded-full text-slate-500 font-bold">${item.qty}</span>
-                        </div>
-                        <div class="flex justify-between items-center mt-1">
-                            <p class="text-xs text-slate-400">เคยซื้อ ฿${item.prev}</p>
-                            <p class="font-bold ${item.now > 0 ? 'text-indigo-600' : 'text-slate-300'}">฿ ${item.now || '???'}</p>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-            
-            const total = items.reduce((s, i) => s + (i.now || 0), 0);
-            document.getElementById('grand-total').innerText = total.toLocaleString();
-            localStorage.setItem('mb_v3_data', JSON.stringify(items));
-        }
-
-        function openCalc(idx) {
-            currentIdx = idx;
-            const item = items[idx];
-            inputVal = item.now > 0 ? item.now.toString() : "";
-            document.getElementById('target-name').innerText = item.name;
-            document.getElementById('history-text').innerText = `ล่าสุด: ฿${item.prev} (${item.shop})`;
-            document.getElementById('num-display').innerText = inputVal || "0";
-            document.getElementById('preview-img').src = item.img || "";
-            document.getElementById('preview-img').classList.toggle('hidden', !item.img);
-            document.getElementById('calc-panel').classList.remove('translate-y-full');
-        }
-
-        function closeCalc(save) {
-            if(save) items[currentIdx].now = parseInt(inputVal) || 0;
-            document.getElementById('calc-panel').classList.add('translate-y-full');
-            render();
-        }
-
-        function press(key) {
-            if(key === 'C') inputVal = "";
-            else inputVal += key;
-            document.getElementById('num-display').innerText = inputVal || "0";
-        }
-
-        function takePhoto() { document.getElementById('cam-input').click(); }
-
-        document.getElementById('cam-input').onchange = e => {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = ev => {
-                // ระบบย่อรูปเพื่อไม่ให้เครื่องอืด
-                const img = new Image();
-                img.src = ev.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const maxW = 300;
-                    const scale = maxW / img.width;
-                    canvas.width = maxW;
-                    canvas.height = img.height * scale;
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    const base64 = canvas.toDataURL('image/jpeg', 0.7);
-                    items[currentIdx].img = base64;
-                    document.getElementById('preview-img').src = base64;
-                    document.getElementById('preview-img').classList.remove('hidden');
-                }
-            };
-            reader.readAsDataURL(file);
-        };
-
-        function addItem() {
-            const n = prompt("ระบุชื่อสินค้า:");
-            if(n) {
-                items.push({ id: Date.now(), name: n, qty: '1 หน่วย', prev: 0, shop: '-', now: 0, img: null });
-                render();
-            }
-        }
-
-        function resetData() {
-            if(confirm("ล้างรายการใหม่หมด?")) {
-                items = items.map(i => ({...i, now: 0}));
-                render();
-            }
-        }
-
-        render();
-    </script>
-</body>
-</html>
+        <div class="grid grid-cols-3 gap-3 flex-1 mb-6">
+            <button onclick="press('7')" class="numpad-btn">7</button>
+            <button onclick="press('8')" class="numpad-btn">8</button>
+            <button onclick="press('9')" class="numpad-btn">9</button>
+            <button onclick="press('4')" class="numpad-btn">4</button>
+            <button onclick="press('5')" class="numpad-btn">5</button>
+            <button onclick="press('6')" class="numpad-btn">6</button>
+            <button onclick="press('1')" class="numpad-btn">1</button>
+            <button onclick="press('2')" class="numpad-btn">2</button>
+            <button onclick="press('3')" class="numpad-btn">3</button>
+            <button onclick="press('C')" class="numpad-btn text-red-500">C</button>
+            <button onclick="press('0')" class="numpad-btn">0</button>
+            <button onclick="closeCalc(false)" class="numpad-btn text-slate-500">
