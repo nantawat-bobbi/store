@@ -1,1779 +1,532 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ร้านฉลาด — ใจดีซีฟู้ด</title>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#f5f3f0;--surface:#fff;--border:#e5e1db;--border2:#ccc8c0;
-  --accent:#111;--green:#1f7a50;--green-dim:#1f7a5015;
-  --gold:#b8860b;--red:#c0392b;--orange:#d35400;
-  --muted:#7a7570;--radius:14px;--rsm:9px;
-  --font:'Sarabun',sans-serif;--mono:'IBM Plex Mono',monospace;
-  --sh:0 2px 8px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
-}
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--accent);overflow:hidden}
-
-/* ═══ SCREENS ═══ */
-.screen{display:none;position:fixed;inset:0;overflow-y:auto;background:var(--bg)}
-.screen.on{display:block}
-
-/* ═══ LANDING ═══ */
-#s-land{background:linear-gradient(160deg,#0a1628 0%,#1a2f1a 60%,#0d2010 100%);color:#fff;display:flex;flex-direction:column}
-.land-hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px 24px;text-align:center}
-.land-logo{font-size:52px;margin-bottom:16px;animation:float 3s ease-in-out infinite}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-.land-title{font-size:28px;font-weight:800;line-height:1.2;margin-bottom:10px;color:#fff}
-.land-title span{color:#4ade80}
-.land-sub{font-size:15px;color:#9ca3af;line-height:1.6;margin-bottom:28px}
-.land-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;width:100%;max-width:360px;margin-bottom:28px}
-.land-stat{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:var(--rsm);padding:12px 8px;text-align:center}
-.land-stat-n{font-size:20px;font-weight:800;color:#4ade80;font-family:var(--mono)}
-.land-stat-l{font-size:11px;color:#9ca3af;margin-top:2px}
-.land-cta{width:100%;max-width:360px;display:flex;flex-direction:column;gap:10px;padding-bottom:32px}
-.btn-land-main{padding:16px;border-radius:var(--radius);background:#4ade80;color:#0a1628;font-family:var(--font);font-size:16px;font-weight:800;border:none;cursor:pointer;transition:all .15s;letter-spacing:.2px}
-.btn-land-main:active{transform:scale(.97)}
-.btn-land-sub{padding:14px;border-radius:var(--radius);background:rgba(255,255,255,.1);color:#fff;font-family:var(--font);font-size:15px;font-weight:600;border:1px solid rgba(255,255,255,.2);cursor:pointer;transition:all .15s}
-.land-features{padding:24px;background:rgba(0,0,0,.2);border-top:1px solid rgba(255,255,255,.08)}
-.land-feat-title{font-size:13px;color:#6b7280;text-align:center;margin-bottom:14px;font-weight:600;text-transform:uppercase;letter-spacing:.6px}
-.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.feat-item{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--rsm);padding:12px;display:flex;align-items:center;gap:8px}
-.feat-icon{font-size:20px;flex-shrink:0}
-.feat-text{font-size:12px;color:#d1d5db;line-height:1.4}
-.feat-lock{font-size:10px;color:#6b7280;margin-top:2px}
-
-/* ═══ GP CALC (before login) ═══ */
-#s-gp{background:linear-gradient(160deg,#1a0a0a 0%,#2d1515 100%);color:#fff}
-.gp-wrap{padding:24px;max-width:480px;margin:0 auto}
-.gp-back{display:flex;align-items:center;gap:8px;color:#9ca3af;font-size:14px;cursor:pointer;margin-bottom:24px;background:none;border:none;font-family:var(--font)}
-.gp-title{font-size:24px;font-weight:800;margin-bottom:6px;color:#fff}
-.gp-sub{font-size:14px;color:#9ca3af;margin-bottom:24px;line-height:1.5}
-.gp-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:var(--radius);padding:18px;margin-bottom:14px}
-.gp-label{font-size:12px;color:#9ca3af;margin-bottom:6px;font-weight:600}
-.gp-input{width:100%;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.15);border-radius:var(--rsm);padding:12px 14px;color:#fff;font-family:var(--mono);font-size:18px;outline:none;transition:border-color .2s}
-.gp-input:focus{border-color:#4ade80}
-.gp-input::placeholder{color:#4b5563}
-.gp-result{background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.3);border-radius:var(--radius);padding:18px;margin-bottom:14px;display:none}
-.gp-result-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.07)}
-.gp-result-row:last-child{border-bottom:none;padding-top:10px;margin-top:4px}
-.gp-result-label{font-size:13px;color:#9ca3af}
-.gp-result-val{font-size:14px;font-weight:700;font-family:var(--mono)}
-.gp-shock{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4);border-radius:var(--rsm);padding:14px;margin-top:10px;font-size:13px;color:#fca5a5;line-height:1.6;display:none}
-.btn-gp{width:100%;padding:15px;border-radius:var(--radius);background:#4ade80;color:#0a1628;font-family:var(--font);font-size:15px;font-weight:800;border:none;cursor:pointer;margin-top:6px}
-.btn-gp-calc{width:100%;padding:13px;border-radius:var(--radius);background:#ef4444;color:#fff;font-family:var(--font);font-size:15px;font-weight:700;border:none;cursor:pointer;margin-top:10px}
-
-/* ═══ LOGIN ═══ */
-#s-login{background:var(--bg)}
-.login-wrap{padding:32px 24px;max-width:400px;margin:0 auto}
-.login-back{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:14px;cursor:pointer;margin-bottom:28px;background:none;border:none;font-family:var(--font)}
-.login-logo{text-align:center;margin-bottom:28px}
-.login-logo-icon{font-size:44px;margin-bottom:8px}
-.login-logo-name{font-size:20px;font-weight:800}
-.login-logo-sub{font-size:12px;color:var(--muted)}
-.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
-.role-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);padding:20px 14px;text-align:center;cursor:pointer;transition:all .2s}
-.role-card.selected{border-color:var(--green);background:var(--green-dim)}
-.role-card:active{transform:scale(.97)}
-.role-icon{font-size:32px;margin-bottom:8px}
-.role-name{font-size:15px;font-weight:700}
-.role-desc{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.4}
-.login-field{margin-bottom:14px}
-.login-label{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;display:block}
-.login-input{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rsm);padding:13px 14px;font-family:var(--font);font-size:15px;color:var(--accent);outline:none;transition:border-color .2s}
-.login-input:focus{border-color:var(--green)}
-.login-hint{font-size:11px;color:var(--muted);margin-top:18px;text-align:center;line-height:1.5}
-.btn-login{width:100%;padding:15px;border-radius:var(--radius);background:var(--accent);color:#fff;font-family:var(--font);font-size:16px;font-weight:700;border:none;cursor:pointer;margin-top:6px}
-.btn-login:active{transform:scale(.98)}
-
-/* ═══ APP SHELL ═══ */
-#s-app{background:var(--bg)}
-.app-wrap{display:flex;flex-direction:column;height:100vh}
-
-/* topbar */
-.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 14px;display:flex;align-items:center;justify-content:space-between;height:52px;flex-shrink:0;position:sticky;top:0;z-index:20}
-.topbar-left{display:flex;align-items:center;gap:10px}
-.topbar-logo{font-size:15px;font-weight:800;color:var(--accent)}
-.topbar-role{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600}
-.role-owner{background:#fef3c7;color:#92400e}
-.role-staff{background:#dbeafe;color:#1e40af}
-.topbar-right{display:flex;align-items:center;gap:8px}
-.topbar-time{font-size:12px;color:var(--muted);font-family:var(--mono)}
-.btn-logout{font-size:12px;background:none;border:1px solid var(--border2);border-radius:6px;padding:5px 10px;cursor:pointer;color:var(--muted);font-family:var(--font)}
-
-/* nav */
-.bottom-nav{background:var(--surface);border-top:1px solid var(--border);display:flex;height:58px;flex-shrink:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.bnav-tab{flex:0 0 72px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:none;cursor:pointer;gap:2px;transition:all .15s;font-family:var(--font);color:var(--muted);font-size:10px;font-weight:500;position:relative;white-space:nowrap}
-.bnav-tab.active{color:var(--green)}
-.bnav-tab span{font-size:20px;line-height:1}
-.bnav-badge{position:absolute;top:6px;right:calc(50% - 16px);background:#ef4444;color:#fff;border-radius:10px;font-size:9px;font-weight:700;padding:1px 5px;font-family:var(--mono)}
-
-/* pages */
-.pages{flex:1;overflow:hidden;position:relative}
-.pg{display:none;height:100%;overflow-y:auto;padding:14px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
-.pg.on{display:block}
-.pg::-webkit-scrollbar{width:3px}
-.pg::-webkit-scrollbar-thumb{background:var(--border)}
-
-/* cards */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--sh)}
-.card-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
-.card-green{background:#f0faf5;border-color:#b7e4cc}
-
-/* stat */
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.stat-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;box-shadow:var(--sh)}
-.stat-lbl{font-size:11px;color:var(--muted);font-weight:500;margin-bottom:3px}
-.stat-val{font-size:20px;font-weight:800;font-family:var(--mono)}
-.stat-sub{font-size:11px;color:var(--muted);margin-top:2px}
-.c-green{color:var(--green)}.c-gold{color:var(--gold)}.c-red{color:var(--red)}.c-orange{color:var(--orange)}
-
-/* list */
-.row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
-.row:last-child{border-bottom:none}
-.row-icon{width:36px;height:36px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.row-body{flex:1;min-width:0}
-.row-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.row-sub{font-size:12px;color:var(--muted);margin-top:1px}
-.row-right{text-align:right;flex-shrink:0}
-.row-price{font-size:14px;font-weight:700;font-family:var(--mono)}
-
-/* buttons */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:9px 16px;border-radius:var(--rsm);font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .15s}
-.btn:active{transform:scale(.97)}
-.btn-dark{background:var(--accent);color:#fff}
-.btn-outline{background:none;color:var(--accent);border:1.5px solid var(--border2)}
-.btn-green{background:var(--green);color:#fff}
-.btn-red{background:var(--red);color:#fff}
-.btn-sm{padding:6px 13px;font-size:13px}
-.btn-full{width:100%}
-
-/* input */
-.inp{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rsm);padding:10px 12px;font-family:var(--font);font-size:14px;color:var(--accent);outline:none;transition:border-color .2s}
-.inp:focus{border-color:var(--green)}
-.inp::placeholder{color:var(--muted)}
-
-/* tag */
-.tag{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
-.tag-new{background:#d1fae5;color:#065f46}
-.tag-old{background:#fef3c7;color:#92400e}
-.tag-grab{background:#d1fae5;color:#065f46}
-.tag-promo{background:#ede9fe;color:#5b21b6}
-.tag-lock{background:#f3f4f6;color:#6b7280}
-
-/* progress */
-.prog{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:4px}
-.prog-fill{height:100%;border-radius:3px;background:var(--green);transition:width .4s}
-.prog-fill.warn{background:var(--orange)}.prog-fill.danger{background:var(--red)}
-
-/* bar chart */
-.bars{display:flex;align-items:flex-end;gap:4px;height:72px}
-.bar-w{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
-.bar-b{width:100%;background:var(--green);border-radius:3px 3px 0 0;min-height:2px;transition:height .4s}
-.bar-l{font-size:9px;color:var(--muted);font-family:var(--mono)}
-.divider{height:1px;background:var(--border);margin:12px 0}
-
-/* POS */
-.pos-wrap{display:grid;grid-template-columns:1fr 280px;height:100%;margin:-14px}
-.pos-left{padding:13px;overflow-y:auto;height:100%}
-.pos-right{background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;height:100%}
-.pos-rhead{padding:12px 13px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
-.pos-rlist{flex:1;overflow-y:auto;padding:8px 12px}
-.pos-rfoot{padding:12px 13px;border-top:1px solid var(--border)}
-.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
-.mcard{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:12px 10px;cursor:pointer;transition:all .15s;position:relative}
-.mcard:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:var(--sh)}
-.mcard:active{transform:scale(.96)}
-.mcard-emoji{font-size:22px;margin-bottom:4px}
-.mcard-name{font-size:12px;font-weight:600;line-height:1.3;margin-bottom:2px}
-.mcard-price{font-size:13px;font-weight:700;font-family:var(--mono);color:var(--green)}
-.mcard-margin{font-size:10px;color:var(--muted)}
-.mcard-qbadge{position:absolute;top:-5px;right:-5px;background:var(--accent);color:#fff;border-radius:50%;width:17px;height:17px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
-.oitem{display:flex;align-items:center;gap:7px;padding:7px 0;border-bottom:1px solid var(--border)}
-.oitem:last-child{border-bottom:none}
-.qrow{display:flex;align-items:center;gap:4px}
-.qbtn{width:22px;height:22px;border-radius:50%;border:1px solid var(--border2);background:var(--bg);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
-.qbtn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
-.qn{font-size:13px;font-weight:700;font-family:var(--mono);min-width:15px;text-align:center}
-
-/* teaser */
-.teaser-wrap{background:linear-gradient(135deg,#0a1628,#1a2f1a);color:#fff;border-radius:var(--radius);padding:20px;margin-bottom:12px}
-.teaser-title{font-size:16px;font-weight:800;margin-bottom:4px}
-.teaser-sub{font-size:13px;color:#9ca3af;margin-bottom:16px;line-height:1.5}
-.teaser-list{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
-.teaser-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--rsm)}
-.teaser-item-icon{font-size:20px;flex-shrink:0}
-.teaser-item-body{flex:1}
-.teaser-item-name{font-size:13px;font-weight:600;color:#f9fafb}
-.teaser-item-desc{font-size:11px;color:#9ca3af;margin-top:1px}
-.teaser-item-lock{font-size:16px;color:#4b5563}
-.btn-teaser{width:100%;padding:14px;border-radius:var(--radius);background:#4ade80;color:#0a1628;font-family:var(--font);font-size:15px;font-weight:800;border:none;cursor:pointer}
-
-/* PREP */
-.prep-row{border-bottom:1px solid var(--border)}
-.prep-row:last-child{border-bottom:none}
-.prep-head{display:flex;align-items:center;gap:10px;padding:11px 0;cursor:pointer;user-select:none}
-.pcheck{width:22px;height:22px;border-radius:6px;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
-.pcheck.on{background:var(--accent);border-color:var(--accent)}
-.pcheck.on::after{content:'✓';color:#fff;font-size:12px;font-weight:700}
-.prep-exp{overflow:hidden;max-height:0;transition:max-height .25s ease}
-.prep-exp.open{max-height:160px}
-.prep-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 0 8px 32px}
-.prep-calc{margin:0 0 10px 32px;padding:6px 10px;background:var(--green-dim);border-radius:6px;font-size:12px;color:var(--green);font-family:var(--mono)}
-
-/* modal */
-.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(4px)}
-.modal{background:var(--surface);border-radius:20px;padding:26px;max-width:300px;width:90%;text-align:center;animation:pop .2s cubic-bezier(.34,1.56,.64,1)}
-@keyframes pop{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
-
-/* lock overlay */
-.lock-ov{position:relative}
-.lock-ov::after{content:'🔒 ฟีเจอร์นี้อยู่ในแพ็กเกจ — ทดลองฟรี 30 วัน';position:absolute;inset:0;background:rgba(255,255,255,.92);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--muted);text-align:center;padding:20px;backdrop-filter:blur(2px)}
-
-/* stock alert */
-.stock-alert{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:var(--rsm);margin-bottom:8px;font-size:13px;font-weight:500}
-.stock-alert.warn{background:#fef3c7;color:#92400e;border:1px solid #fcd34d}
-.stock-alert.danger{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
-
-@media(max-width:580px){
-  .pos-wrap{grid-template-columns:1fr;grid-template-rows:1fr 42vh}
-  .pos-right{border-left:none;border-top:2px solid var(--border)}
-  .mgrid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr))}
-  .role-grid{grid-template-columns:1fr 1fr}
-}
-::-webkit-scrollbar{width:3px}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-</style>
-</head>
-<body>
-
-<!-- ═══ SCREEN: LANDING ═══ -->
-<div class="screen on" id="s-land">
-  <div class="land-hero">
-    <div class="land-logo">🐟</div>
-    <div class="land-title">ร้านฉลาด<br><span>รู้กำไรจริงทุกวัน</span></div>
-    <div class="land-sub">ระบบจัดการร้านที่เข้าใจ<br>เจ้าของร้านข้างทางจริงๆ</div>
-    <div class="land-stats">
-      <div class="land-stat"><div class="land-stat-n">฿0</div><div class="land-stat-l">ค่าใช้จ่าย<br>เพื่อเริ่มต้น</div></div>
-      <div class="land-stat"><div class="land-stat-n">5'</div><div class="land-stat-l">ใช้งานได้<br>ภายใน</div></div>
-      <div class="land-stat"><div class="land-stat-n">30%</div><div class="land-stat-l">GP ที่คุณ<br>จ่ายให้ Grab</div></div>
-    </div>
-    <div class="land-cta">
-      <button class="btn-land-main" onclick="go('s-login')">เริ่มใช้งาน — ฟรี 30 วัน</button>
-      <button class="btn-land-sub" onclick="go('s-gp')">🧮 คำนวณดูก่อน — Grab กินเงินคุณเท่าไหร่?</button>
-    </div>
-  </div>
-  <div class="land-features">
-    <div class="land-feat-title">ครบทุกอย่างในมือถือเครื่องเดียว</div>
-    <div class="feat-grid">
-      <div class="feat-item"><div class="feat-icon">🛒</div><div><div class="feat-text">เตรียมซื้อของ + บันทึกราคาตลาด</div></div></div>
-      <div class="feat-item"><div class="feat-icon">💳</div><div><div class="feat-text">POS กดขาย ทอนเงิน รับโอน</div></div></div>
-      <div class="feat-item"><div class="feat-icon">📦</div><div><div class="feat-text">สต็อกแยกล็อต เตือนของใกล้หมด</div></div></div>
-      <div class="feat-item"><div class="feat-icon">📊</div><div><div class="feat-text">กำไรจริงทุกวัน หักทุนแฝงให้</div></div></div>
-      <div class="feat-item"><div class="feat-icon">🟢</div><div><div class="feat-text">คำนวณ GP Grab / LINE MAN</div><div class="feat-lock">รู้ว่าจ่าย GP ไปเท่าไหร่จริงๆ</div></div></div>
-      <div class="feat-item"><div class="feat-icon">📱</div><div><div class="feat-text">เจ้าของดูได้ทุกที่ แจ้งเตือน LINE</div></div></div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ SCREEN: GP CALC ═══ -->
-<div class="screen" id="s-gp">
-  <div class="gp-wrap">
-    <button class="gp-back" onclick="go('s-land')">← กลับ</button>
-    <div class="gp-title">Grab กินเงินคุณเท่าไหร่?</div>
-    <div class="gp-sub">กรอกยอดขาย Grab ของคุณ<br>แล้วดูว่าเสียเงินไปมากแค่ไหน</div>
-
-    <div class="gp-card">
-      <div class="gp-label">ยอดขายผ่าน Grab เดือนละ (บาท)</div>
-      <input class="gp-input" id="gpGrab" type="number" placeholder="เช่น 50000" inputmode="numeric" oninput="calcGP()">
-    </div>
-    <div class="gp-card">
-      <div class="gp-label">ยอดขายผ่าน LINE MAN เดือนละ (บาท)</div>
-      <input class="gp-input" id="gpLine" type="number" placeholder="เช่น 20000" inputmode="numeric" oninput="calcGP()">
-    </div>
-    <div class="gp-card">
-      <div class="gp-label">ยอดขายหน้าร้านเดือนละ (บาท)</div>
-      <input class="gp-input" id="gpShop" type="number" placeholder="เช่น 80000" inputmode="numeric" oninput="calcGP()">
-    </div>
-
-    <div class="gp-result" id="gpResult">
-      <div class="gp-result-row"><span class="gp-result-label">GP Grab (30%)</span><span class="gp-result-val" style="color:#ef4444" id="gpGrabFee">-</span></div>
-      <div class="gp-result-row"><span class="gp-result-label">GP LINE MAN (30%)</span><span class="gp-result-val" style="color:#ef4444" id="gpLineFee">-</span></div>
-      <div class="gp-result-row"><span class="gp-result-label">รายรับจริงจากออนไลน์</span><span class="gp-result-val" style="color:#4ade80" id="gpNetOnline">-</span></div>
-      <div class="gp-result-row"><span class="gp-result-label" style="font-weight:700;color:#fff">GP รวมที่เสียไป/เดือน</span><span class="gp-result-val" style="color:#ef4444;font-size:20px" id="gpTotalFee">-</span></div>
-    </div>
-
-    <div class="gp-shock" id="gpShock"></div>
-
-    <button class="btn-gp" onclick="go('s-login')">เริ่มติดตาม GP ในระบบฟรี →</button>
-  </div>
-</div>
-
-<!-- ═══ SCREEN: LOGIN ═══ -->
-<div class="screen" id="s-login">
-  <div class="login-wrap">
-    <button class="login-back" onclick="go('s-land')">← กลับ</button>
-    <div class="login-logo">
-      <div class="login-logo-icon">🐟</div>
-      <div class="login-logo-name">ร้านฉลาด</div>
-      <div class="login-logo-sub">ใจดีซีฟู้ด & Salmon</div>
-    </div>
-
-    <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.6px">คุณคือ</div>
-    <div class="role-grid">
-      <div class="role-card selected" id="role-owner" onclick="selectRole('owner')">
-        <div class="role-icon">👑</div>
-        <div class="role-name">เจ้าของร้าน</div>
-        <div class="role-desc">ดูได้ทุกอย่าง ยอดขาย กำไร ต้นทุน</div>
-      </div>
-      <div class="role-card" id="role-staff" onclick="selectRole('staff')">
-        <div class="role-icon">👨‍🍳</div>
-        <div class="role-name">พนักงาน</div>
-        <div class="role-desc">กดขาย รับออเดอร์ เปิด-ปิดกะ</div>
-      </div>
-    </div>
-
-    <div class="login-field">
-      <label class="login-label">ชื่อผู้ใช้</label>
-      <input class="login-input" id="loginUser" placeholder="เช่น เจ้าของ หรือ แอน">
-    </div>
-    <div class="login-field">
-      <label class="login-label">รหัสผ่าน</label>
-      <input class="login-input" type="password" id="loginPass" placeholder="••••••">
-    </div>
-    <button class="btn-login" onclick="doLogin()">เข้าสู่ระบบ</button>
-    <div class="login-hint">Demo: ใส่อะไรก็ได้ กด เข้าสู่ระบบ<br>ข้อมูลจริงจะถูกเก็บในเครื่องคุณ</div>
-  </div>
-</div>
-
-<!-- ═══ SCREEN: APP ═══ -->
-<div class="screen" id="s-app">
-  <div class="app-wrap">
-    <div class="topbar">
-      <div class="topbar-left">
-        <div class="topbar-logo">🐟 ใจดีซีฟู้ด</div>
-        <span class="topbar-role" id="roleTag">เจ้าของ</span>
-      </div>
-      <div class="topbar-right">
-        <span class="topbar-time" id="topTime"></span>
-        <button class="btn-logout" onclick="go('s-land')">ออก</button>
-      </div>
-    </div>
-
-    <div class="pages">
-      <!-- HOME -->
-      <div class="pg on" id="pg-home">
-        <div id="ownerHome">
-          <!-- GP SUMMARY -->
-          <div class="card" style="background:linear-gradient(135deg,#0a1628,#1a2f1a);color:#fff;border:none">
-            <div style="font-size:12px;color:#9ca3af;margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.6px">สรุปวันนี้ — <span id="homeDate"></span></div>
-            <div class="stat-grid" style="margin-bottom:0">
-              <div style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:12px">
-                <div style="font-size:11px;color:#9ca3af">ยอดขายรวม</div>
-                <div style="font-size:20px;font-weight:800;font-family:var(--mono);color:#fff" id="homeRev">฿0</div>
-                <div style="font-size:11px;color:#9ca3af" id="homeBills">0 บิล</div>
-              </div>
-              <div style="background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.25);border-radius:10px;padding:12px">
-                <div style="font-size:11px;color:#9ca3af">กำไรจริง</div>
-                <div style="font-size:20px;font-weight:800;font-family:var(--mono);color:#4ade80" id="homeProfit">฿0</div>
-                <div style="font-size:11px;color:#9ca3af" id="homeMargin">margin 0%</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- STOCK ALERTS -->
-          <div id="stockAlerts"></div>
-
-          <!-- GP TRACKER -->
-          <div class="card">
-            <div class="card-title">GP Online วันนี้</div>
-            <div class="row">
-              <div class="row-icon">🟢</div>
-              <div class="row-body"><div class="row-name">Grab</div><div class="row-sub">ยอด ฿<span id="gpGrabToday">0</span> · หัก GP 30%</div></div>
-              <div class="row-right"><div class="row-price c-red">−฿<span id="gpGrabFeeToday">0</span></div><div style="font-size:11px;color:var(--muted)">ที่เสียไป</div></div>
-            </div>
-            <div class="row">
-              <div class="row-icon">🛵</div>
-              <div class="row-body"><div class="row-name">LINE MAN</div><div class="row-sub">ยอด ฿<span id="gpLineToday">0</span> · หัก GP 30%</div></div>
-              <div class="row-right"><div class="row-price c-red">−฿<span id="gpLineFeeToday">0</span></div><div style="font-size:11px;color:var(--muted)">ที่เสียไป</div></div>
-            </div>
-            <div class="divider"></div>
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <span style="font-size:13px;color:var(--muted)">GP รวมที่เสียวันนี้</span>
-              <span style="font-size:17px;font-weight:800;font-family:var(--mono);color:var(--red)" id="gpTotalToday">฿0</span>
-            </div>
-          </div>
-
-          <!-- CHANNEL -->
-          <div class="card">
-            <div class="card-title">แยกช่องทาง — กำไรจริง</div>
-            <div id="channelRows"></div>
-          </div>
-
-          <!-- TEASER -->
-          <div class="teaser-wrap">
-            <div class="teaser-title">🔒 ยังมีอีก 6 ฟีเจอร์</div>
-            <div class="teaser-sub">คุณกำลังใช้แค่ 40% ของระบบ<br>ฟีเจอร์ด้านล่างรอคุณอยู่</div>
-            <div class="teaser-list">
-              <div class="teaser-item"><div class="teaser-item-icon">🧾</div><div class="teaser-item-body"><div class="teaser-item-name">บัญชีและภาษีอัตโนมัติ</div><div class="teaser-item-desc">ไม่ต้องจ้างนักบัญชี คำนวณภาษีให้ทุกประเภท</div></div><div class="teaser-item-lock">🔒</div></div>
-              <div class="teaser-item"><div class="teaser-item-icon">👥</div><div class="teaser-item-body"><div class="teaser-item-name">วิเคราะห์พฤติกรรมลูกค้า</div><div class="teaser-item-desc">รู้ว่าเมนูไหนสั่งคู่กัน ช่วงไหนขายดี</div></div><div class="teaser-item-lock">🔒</div></div>
-              <div class="teaser-item"><div class="teaser-item-icon">🔮</div><div class="teaser-item-body"><div class="teaser-item-name">คาดการณ์ยอดขายพรุ่งนี้</div><div class="teaser-item-desc">ซื้อของพอดี ไม่เกิน ไม่ขาด</div></div><div class="teaser-item-lock">🔒</div></div>
-              <div class="teaser-item"><div class="teaser-item-icon">🏢</div><div class="teaser-item-body"><div class="teaser-item-name">หลายสาขา + แฟรนไชส์</div><div class="teaser-item-desc">ดูทุกสาขาในหน้าจอเดียว</div></div><div class="teaser-item-lock">🔒</div></div>
-            </div>
-            <button class="btn-teaser" onclick="alert('ติดต่อทีมงานเพื่อเริ่มใช้งานจริง ✓')">เริ่มใช้ฟรี 30 วัน — ไม่ต้องใส่บัตร</button>
-          </div>
-        </div>
-
-        <!-- STAFF HOME -->
-        <div id="staffHome" style="display:none">
-          <div class="card" style="text-align:center;padding:24px">
-            <div style="font-size:48px;margin-bottom:10px">👨‍🍳</div>
-            <div style="font-size:18px;font-weight:700;margin-bottom:4px" id="staffName">สวัสดี!</div>
-            <div style="font-size:13px;color:var(--muted);margin-bottom:18px">กะเช้า · <span id="staffTime"></span></div>
-            <button class="btn btn-green btn-full" style="padding:14px;font-size:16px" onclick="switchPg('pos')">เริ่มรับออเดอร์ →</button>
-          </div>
-          <div class="card">
-            <div class="card-title">ยอดขายกะนี้</div>
-            <div class="stat-grid">
-              <div class="stat-box"><div class="stat-lbl">บิลที่ขาย</div><div class="stat-val" id="staffBills">0</div></div>
-              <div class="stat-box"><div class="stat-lbl">ยอดรวม</div><div class="stat-val c-green" id="staffRev">฿0</div></div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-title">เมนูขายดีกะนี้</div>
-            <div id="staffTopMenus"><div style="color:var(--muted);font-size:13px">ยังไม่มีออเดอร์</div></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- PREP -->
-      <div class="pg" id="pg-prep">
-        <div class="card">
-          <div class="card-title">เลือกรายการซื้อวันนี้</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:12px">กดเลือก → ใส่จำนวน + ราคา → ระบบคำนวณให้</div>
-          <div id="prepList"></div>
-        </div>
-        <div id="prepBar" style="display:none">
-          <div class="card card-green">
-            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-              <div>
-                <div style="font-size:12px;color:var(--muted)">เลือก <span id="prepCnt" style="color:var(--green);font-weight:700">0</span> รายการ · ประมาณ</div>
-                <div style="font-size:22px;font-weight:800;font-family:var(--mono)" id="prepEst">฿0</div>
-              </div>
-              <button class="btn btn-dark" onclick="goMarket()">ออกไปตลาด →</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- MARKET -->
-      <div class="pg" id="pg-market">
-        <div class="card" id="mktEmpty" style="text-align:center;padding:36px 16px">
-          <div style="font-size:40px;margin-bottom:10px">🛒</div>
-          <div style="font-size:15px;font-weight:700;margin-bottom:6px">ยังไม่มีรายการ</div>
-          <div style="font-size:13px;color:var(--muted);margin-bottom:16px">กลับไปเลือกที่หน้าเตรียมซื้อก่อน</div>
-          <button class="btn btn-outline btn-sm" onclick="switchPg('prep')">← เตรียมซื้อ</button>
-        </div>
-        <div id="mktContent" style="display:none">
-          <div class="card">
-            <div class="card-title">บันทึกราคา + จำนวนจริงที่ซื้อ</div>
-            <div id="mktList"></div>
-            <div class="divider"></div>
-            <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px">
-              <div>
-                <div style="font-size:11px;color:var(--muted)">ประมาณการ</div>
-                <div style="font-size:14px;font-family:var(--mono);color:var(--muted);text-decoration:line-through" id="mktEst">฿0</div>
-                <div style="font-size:11px;color:var(--muted);margin-top:4px">จ่ายจริง</div>
-                <div style="font-size:22px;font-weight:800;font-family:var(--mono)" id="mktTotal">฿0</div>
-                <div style="font-size:12px;font-family:var(--mono)" id="mktDiff"></div>
-              </div>
-              <button class="btn btn-green" onclick="confirmBuy()">ยืนยัน → เข้าสต็อก ✓</button>
-            </div>
-          </div>
-          <div class="card" id="warnCard" style="background:#fef3c7;border-color:#fcd34d;display:none">
-            <div class="card-title" style="color:#92400e">⚠️ แพงกว่าครั้งก่อน</div>
-            <div id="warnList"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- STOCK -->
-      <div class="pg" id="pg-stock">
-        <div class="card">
-          <div class="card-title">สต็อกวัตถุดิบ — แยกล็อต</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:12px">🟢 ล็อตใหม่ · 🟡 ล็อตเก่า (ใช้ก่อน)</div>
-          <div id="stockList"></div>
-        </div>
-        <div class="card">
-          <div class="card-title">สรุปซื้อวันนี้</div>
-          <div id="buySummary"><div style="color:var(--muted);font-size:13px">ยังไม่มีการซื้อวันนี้</div></div>
-        </div>
-      </div>
-
-      <!-- POS -->
-      <div class="pg" id="pg-pos" style="padding:0">
-        <div class="pos-wrap">
-          <div class="pos-left">
-            <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
-              <button class="btn btn-sm btn-dark" onclick="fcat('all',this)">ทั้งหมด</button>
-              <button class="btn btn-sm btn-outline" onclick="fcat('promo',this)">โปร</button>
-              <button class="btn btn-sm btn-outline" onclick="fcat('sashimi',this)">ซาชิมิ</button>
-              <button class="btn btn-sm btn-outline" onclick="fcat('seafood',this)">ซีฟู้ด</button>
-              <button class="btn btn-sm btn-outline" onclick="fcat('side',this)">เครื่องเคียง</button>
-              <button class="btn btn-sm btn-outline" onclick="fcat('dessert',this)">ของหวาน</button>
-            </div>
-            <div class="mgrid" id="mgrid"></div>
-          </div>
-          <div class="pos-right">
-            <div class="pos-rhead">
-              <div style="font-size:14px;font-weight:700">ออเดอร์ <span id="obadge" style="color:var(--green);font-family:var(--mono)"></span></div>
-              <button class="btn btn-outline btn-sm" onclick="clearOrd()" style="font-size:12px">ล้าง</button>
-            </div>
-            <div class="pos-rlist" id="olist">
-              <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:.35;gap:6px">
-                <div style="font-size:30px">🐟</div><div style="font-size:13px;color:var(--muted)">ยังไม่มีรายการ</div>
-              </div>
-            </div>
-            <div class="pos-rfoot">
-              <div style="display:flex;justify-content:space-between;margin-bottom:2px">
-                <span style="font-size:13px;color:var(--muted)" id="oitems">0 รายการ</span>
-                <span style="font-size:11px;color:var(--green)" id="oprofit"></span>
-              </div>
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-                <span style="font-size:15px;font-weight:700">รวม</span>
-                <span style="font-size:22px;font-weight:800;font-family:var(--mono)" id="ototal">฿0</span>
-              </div>
-              <div style="display:flex;gap:6px;margin-bottom:8px">
-                <button class="btn btn-sm btn-dark" style="flex:1" id="bCash" onclick="setPay('cash')">💵 เงินสด</button>
-                <button class="btn btn-sm btn-outline" style="flex:1" id="bQR" onclick="setPay('qr')">📱 โอน</button>
-                <button class="btn btn-sm btn-outline" style="flex:1" id="bGrab" onclick="setPay('grab')">🟢 Grab</button>
-              </div>
-              <div id="cashRow" style="margin-bottom:8px">
-                <input class="inp" id="cashInp" type="number" placeholder="รับเงินมา..." inputmode="numeric" oninput="calcChg()" style="text-align:right">
-                <div id="chgRow" style="display:none;margin-top:6px;background:#f0faf5;border:1px solid #b7e4cc;border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center">
-                  <span style="font-size:13px;color:var(--green)">ทอนเงิน</span>
-                  <span style="font-size:18px;font-weight:800;font-family:var(--mono);color:var(--green)" id="chgVal">฿0</span>
-                </div>
-              </div>
-              <button class="btn btn-dark btn-full" id="btnPay" onclick="confirmPay()" disabled style="padding:13px;font-size:16px">รับเงินแล้ว ✓</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- SUMMARY -->
-      <div class="pg" id="pg-sum">
-        <div class="stat-grid">
-          <div class="stat-box"><div class="stat-lbl">ยอดขายรวม</div><div class="stat-val" id="sRev">฿0</div><div class="stat-sub" id="sBills">0 บิล</div></div>
-          <div class="stat-box"><div class="stat-lbl">กำไรจริง</div><div class="stat-val c-green" id="sProfit">฿0</div><div class="stat-sub" id="sMargin">margin 0%</div></div>
-          <div class="stat-box"><div class="stat-lbl">ต้นทุนสินค้า</div><div class="stat-val c-gold" id="sCOGS">฿0</div><div class="stat-sub">วัตถุดิบ</div></div>
-          <div class="stat-box"><div class="stat-lbl">GP ออนไลน์</div><div class="stat-val c-red" id="sGP">฿0</div><div class="stat-sub">จ่ายให้แพลตฟอร์ม</div></div>
-        </div>
-        <div class="card">
-          <div class="card-title">ยอดขายรายชั่วโมง</div>
-          <div class="bars" id="hourBars"></div>
-          <div style="font-size:11px;color:var(--muted);margin-top:6px;text-align:center">ชั่วโมงทอง: <strong id="peakH">—</strong></div>
-        </div>
-        <!-- เปรียบเทียบกับเมื่อวาน -->
-        <div class="card">
-          <div class="card-title">📈 เปรียบเทียบกับเมื่อวาน</div>
-          <div id="vsYesterday"></div>
-        </div>
-
-        <!-- เงินสดในลิ้นชัก -->
-        <div class="card">
-          <div class="card-title">💵 ตรวจสอบเงินสดในลิ้นชัก</div>
-          <div id="cashDrawer"></div>
-          <div class="divider"></div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <input class="inp" id="actualCash" type="number" placeholder="นับเงินสดได้เท่าไหร่..." inputmode="numeric" oninput="checkCash()" style="text-align:right">
-            <button class="btn btn-dark btn-sm" onclick="checkCash()">ตรวจ</button>
-          </div>
-          <div id="cashResult" style="margin-top:8px"></div>
-        </div>
-
-        <!-- กะเช้า vs กะบ่าย -->
-        <div class="card">
-          <div class="card-title">⏰ กะเช้า vs กะบ่าย</div>
-          <div id="shiftCompare"></div>
-        </div>
-
-        <!-- พนักงานขายดีสุด -->
-        <div class="card">
-          <div class="card-title">🏆 ยอดขายแยกพนักงาน</div>
-          <div id="staffSalesSummary"></div>
-        </div>
-
-        <!-- วัตถุดิบใช้ไป -->
-        <div class="card">
-          <div class="card-title">📦 วัตถุดิบที่ใช้ไปวันนี้</div>
-          <div id="ingredientUsed"></div>
-        </div>
-
-        <!-- ต้องซื้ออะไรพรุ่งนี้ -->
-        <div class="card" style="background:#f0faf5;border-color:#b7e4cc">
-          <div class="card-title" style="color:var(--green)">🛒 ต้องซื้ออะไรพรุ่งนี้</div>
-          <div id="tmrBuyList"></div>
-        </div>
-
-        <div class="card"><div class="card-title">เมนูขายดี</div><div id="topMenus"></div></div>
-        <div class="card"><div class="card-title">กำไรต่อเมนู</div><div id="profitMenus"></div></div>
-        <div class="card card-green">
-          <div class="card-title" style="color:var(--green)">สรุปส่ง LINE เจ้าของ</div>
-          <div style="font-size:13px;line-height:1.9;font-family:var(--mono)" id="lineMsg"></div>
-          <button class="btn btn-green btn-sm" style="margin-top:12px" onclick="alert('ส่ง LINE แล้ว ✓')">ส่ง LINE ตอนนี้</button>
-        </div>
-      </div>
-    
-      <!-- INSIGHT PAGE -->
-      <div class="pg" id="pg-insight">
-        <!-- SMART ORDER RECOMMENDATION -->
-        <div class="card" style="background:linear-gradient(135deg,#0a1628,#0d2010);color:#fff;border:none">
-          <div style="font-size:11px;color:#9ca3af;margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.6px">🧠 ระบบแนะนำการสั่งซื้อ</div>
-          <div style="font-size:14px;color:#d1fae5;margin-bottom:14px;line-height:1.6">วิเคราะห์จากยอดขาย 7 วันที่ผ่านมา<br>คำนวณให้ว่าพรุ่งนี้ควรซื้ออะไร เท่าไหร่</div>
-          <div id="orderRec"></div>
-          <button class="btn-land-main" style="margin-top:14px;font-size:14px;padding:12px" onclick="genOrderRec()">🔄 คำนวณใหม่</button>
-        </div>
-
-        <!-- PRE-ORDER SUMMARY -->
-        <div class="card">
-          <div class="card-title">📋 ใบสรุปก่อนสั่งซื้อ</div>
-          <div id="preOrderSum"></div>
-        </div>
-
-        <!-- SMART ALERTS -->
-        <div class="card" style="background:#fff9f0;border-color:#fcd34d">
-          <div class="card-title" style="color:#92400e">⚠️ แจ้งเตือนความผิดพลาด</div>
-          <div id="smartAlerts"></div>
-        </div>
-
-        <!-- OPPORTUNITY ANALYSIS -->
-        <div class="card">
-          <div class="card-title">💡 โอกาสที่ระบบเห็น</div>
-          <div id="opportunities"></div>
-        </div>
-
-        <!-- EXPAND ANALYSIS -->
-        <div class="card">
-          <div class="card-title">🏢 วิเคราะห์การขยายร้าน</div>
-          <div id="expandAnalysis"></div>
-        </div>
-
-        <!-- TREND CHART -->
-        <div class="card">
-          <div class="card-title">📈 แนวโน้ม 7 วัน</div>
-          <div class="bars" id="trendBars" style="height:90px"></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px" id="trendStats"></div>
-        </div>
-      </div>
-
-      <!-- STAFF MANAGEMENT PAGE -->
-      <div class="pg" id="pg-staff">
-        <!-- STAFF LIST -->
-        <div class="card">
-          <div class="card-title">👥 ทีมงานวันนี้</div>
-          <div id="staffList"></div>
-          <button class="btn btn-outline btn-sm" style="margin-top:12px;width:100%" onclick="showAddStaff()">+ เพิ่มพนักงาน</button>
-        </div>
-
-        <!-- CHECKIN -->
-        <div class="card" style="background:#f0faf5;border-color:#b7e4cc">
-          <div class="card-title" style="color:var(--green)">✅ เช็คอินวันนี้</div>
-          <div id="checkinList"></div>
-        </div>
-
-        <!-- STAFF PERFORMANCE -->
-        <div class="card">
-          <div class="card-title">🏆 ผลงานกะนี้</div>
-          <div id="staffPerf"></div>
-        </div>
-
-        <!-- SALARY CALC -->
-        <div class="card">
-          <div class="card-title">💰 คำนวณค่าแรงเดือนนี้</div>
-          <div id="salarySummary"></div>
-          <div class="divider"></div>
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:14px;font-weight:700">รวมค่าแรงเดือนนี้</span>
-            <span style="font-size:20px;font-weight:800;font-family:var(--mono);color:var(--red)" id="totalSalary">฿0</span>
-          </div>
-        </div>
-
-        <!-- FRAUD ALERTS -->
-        <div class="card" style="background:#fff9f0;border-color:#fcd34d">
-          <div class="card-title" style="color:#92400e">🔍 ตรวจสอบทุจริต</div>
-          <div id="fraudAlerts"></div>
-        </div>
-      </div>
-
-    </div>
-
-    <div class="bottom-nav" id="bottomNav">
-      <button class="bnav-tab active" onclick="switchPg('home')" id="nt-home"><span>🏠</span>หน้าแรก</button>
-      <button class="bnav-tab" onclick="switchPg('prep')" id="nt-prep"><span>📋</span>เตรียมซื้อ</button>
-      <button class="bnav-tab" onclick="switchPg('market')" id="nt-market"><span>🛒</span>ตลาด</button>
-      <button class="bnav-tab" onclick="switchPg('stock')" id="nt-stock"><span>📦</span>สต็อก</button>
-      <button class="bnav-tab" onclick="switchPg('pos')" id="nt-pos"><span>💳</span>ขาย</button>
-      <button class="bnav-tab" onclick="switchPg('sum')" id="nt-sum"><span>📊</span>สรุป</button>
-      <button class="bnav-tab" onclick="switchPg('insight')" id="nt-insight"><span>🔮</span>วิเคราะห์</button>
-      <button class="bnav-tab" onclick="switchPg('staff')" id="nt-staff"><span>👥</span>พนักงาน</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-ov" id="modal" style="display:none">
-  <div class="modal">
-    <div style="font-size:46px;margin-bottom:10px">✅</div>
-    <div style="font-size:19px;font-weight:800;margin-bottom:4px">รับเงินสำเร็จ!</div>
-    <div style="font-size:14px;color:var(--muted);margin-bottom:18px" id="modalMsg"></div>
-    <button class="btn btn-dark" onclick="closeModal()">ออเดอร์ต่อไป →</button>
-  </div>
-</div>
-
-<script>
-// ════════════════════════════════════
-// DATA
-// ════════════════════════════════════
-const ING=[
-  {id:'sa',name:'แซลมอนแอทแลนติก',unit:'กก.',suggest:2.5,prev:850,icon:'🐟',stockQty:0.8},
-  {id:'st',name:'แซลมอนแทสเมเนียน',unit:'กก.',suggest:2,prev:920,icon:'🐠',stockQty:0.5},
-  {id:'sh',name:'หัวปลาแซลมอน',unit:'กก.',suggest:1,prev:180,icon:'🐡',stockQty:1.2},
-  {id:'sr',name:'กุ้งแม่น้ำ',unit:'กก.',suggest:1.5,prev:380,icon:'🦐',stockQty:0.6},
-  {id:'sq',name:'หมึกไข่',unit:'กก.',suggest:1,prev:280,icon:'🦑',stockQty:0.8},
-  {id:'sc',name:'หอยเชลล์',unit:'กก.',suggest:0.5,prev:450,icon:'🦪',stockQty:0.3},
-  {id:'ri',name:'ข้าวญี่ปุ่น',unit:'กก.',suggest:5,prev:95,icon:'🍚',stockQty:3},
-  {id:'no',name:'โนริสาหร่าย',unit:'แพ็ก',suggest:3,prev:45,icon:'🌿',stockQty:1},
-  {id:'mn',name:'มะม่วงน้ำดอกไม้',unit:'กก.',suggest:2,prev:80,icon:'🥭',stockQty:1.5},
-  {id:'sb',name:'สตรอเบอร์รี่',unit:'กก.',suggest:1,prev:160,icon:'🍓',stockQty:0.4},
-];
-
-const MENUS=[
-  {id:'m1',name:'ชุดจุใจ แถมน้ำ',price:399,cost:180,emoji:'🎁',cat:'promo',sub:'ซาชิมิ+ดอง+กุ้ง+ข้าว'},
-  {id:'m2',name:'ชุดแอทแลนติก 500g',price:490,cost:220,emoji:'🐟',cat:'promo',sub:'แถมข้าว/โนริ'},
-  {id:'m3',name:'ชุดแทสเมเนียน 500g',price:560,cost:260,emoji:'🐠',cat:'promo',sub:'แถมข้าว/โนริ'},
-  {id:'m4',name:'ชุดโปร แซลมอนดอง',price:280,cost:110,emoji:'🫙',cat:'promo',sub:'โนริ+ข้าว+ยำสาหร่าย'},
-  {id:'m5',name:'ชุด 3 ใจ A',price:320,cost:130,emoji:'❤️',cat:'promo',sub:'ดอง+กุ้ง+ซาชิมิ'},
-  {id:'m6',name:'ชุด 4 ใจ',price:420,cost:170,emoji:'💝',cat:'promo',sub:'ดอง+ซาชิมิ+กุ้ง+ยำ'},
-  {id:'m7',name:'โทโร่ซาชิมิ 120g',price:280,cost:130,emoji:'🍣',cat:'sashimi',sub:'ส่วนท้อง'},
-  {id:'m8',name:'โทโร่ซาชิมิ 200g',price:420,cost:195,emoji:'🍣',cat:'sashimi',sub:'ส่วนท้อง'},
-  {id:'m9',name:'โทโร่ซาชิมิ 300g',price:590,cost:275,emoji:'🍣',cat:'sashimi',sub:''},
-  {id:'m10',name:'พรีเมียมซาชิมิ 200g',price:340,cost:160,emoji:'🍱',cat:'sashimi',sub:''},
-  {id:'m11',name:'พรีเมียมซาชิมิ 500g',price:750,cost:355,emoji:'🍱',cat:'sashimi',sub:''},
-  {id:'m12',name:'โปรไฟลุก 400g',price:620,cost:290,emoji:'🔥',cat:'sashimi',sub:'เลือกของแถม'},
-  {id:'m13',name:'หัวปลาแซลมอน',price:120,cost:45,emoji:'🐡',cat:'sashimi',sub:'ราคาพิเศษ'},
-  {id:'m14',name:'ทะเลเผารวม',price:450,cost:200,emoji:'🦐',cat:'seafood',sub:'กุ้ง+หมึก+หอยเชลล์'},
-  {id:'m15',name:'ทะเลรวม สตรีทฟู้ด',price:380,cost:160,emoji:'🍽️',cat:'seafood',sub:'แซลมอน+กุ้ง+หอย'},
-  {id:'m16',name:'กุ้งเด้งดองซีอิ๊ว',price:280,cost:115,emoji:'🦐',cat:'seafood',sub:'ลวกสุก'},
-  {id:'m17',name:'ผักโขมน้ำมันงา',price:80,cost:25,emoji:'🥬',cat:'side',sub:''},
-  {id:'m18',name:'ยำแตงกวาญี่ปุ่น',price:90,cost:30,emoji:'🥒',cat:'side',sub:'พริกเสฉวน'},
-  {id:'m19',name:'กิมจิโฮมเมด 200g',price:120,cost:45,emoji:'🌶️',cat:'side',sub:''},
-  {id:'m20',name:'ข้าวเหนียวมะม่วง',price:120,cost:40,emoji:'🥭',cat:'dessert',sub:'น้ำดอกไม้'},
-  {id:'m21',name:'สตรอเบอร์รี่หั่น',price:120,cost:55,emoji:'🍓',cat:'dessert',sub:'พร้อมทาน'},
-];
-
-// STATE
-let curRole='owner', curUser='เจ้าของ';
-let selPrep={}, mktItems=[], stock={}, order={}, payMode='cash';
-let daySales=[], purchaseTotal=0;
-const HIDDEN=1240;
-const GP_RATE=0.3;
-
-// ════════════════════════════════════
-// INIT STOCK & MOCK SALES
-// ════════════════════════════════════
-function initStock(){
-  ING.forEach(g=>{
-    stock[g.id]=[{lot:'L001',date:'เมื่อวาน',qty:g.stockQty,unit:g.unit,price:g.prev,isNew:false}];
-  });
-}
-
-function initMockSales(){
-  const hrs=[10,11,12,13,14,15,16,17,18,19,20];
-  const vols=[1,3,6,5,3,2,3,4,5,4,2];
-  const chs=['cash','qr','grab','lineman'];
-  hrs.forEach((h,i)=>{
-    for(let j=0;j<vols[i];j++){
-      const m=MENUS[Math.floor(Math.random()*MENUS.length)];
-      daySales.push({menu:m,qty:1,time:h,channel:chs[j%4]});
+// firebase-config.js
+// ร้านฉลาด — Firebase Core Module
+// ══════════════════════════════════════
+
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { 
+  getFirestore, doc, collection, addDoc, setDoc, getDoc, getDocs, 
+  updateDoc, deleteDoc, onSnapshot, query, where, orderBy, limit,
+  serverTimestamp, increment
+} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { 
+  getAuth, signInWithEmailAndPassword, signOut, 
+  onAuthStateChanged, createUserWithEmailAndPassword
+} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+// ══════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyBUgJl8ALal0P82aXA4y0vTEolZMkYsz74",
+  authDomain: "priceops-71647.firebaseapp.com",
+  projectId: "priceops-71647",
+  storageBucket: "priceops-71647.firebasestorage.app",
+  messagingSenderId: "380557020231",
+  appId: "1:380557020231:web:7ca4386b4cb51c4e7eb562",
+  measurementId: "G-1Z3D8YNMFL"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+// ══════════════════════════════════════
+// DATABASE STRUCTURE
+// ══════════════════════════════════════
+/*
+stores/
+  {storeId}/
+    info/            ข้อมูลร้าน
+    settings/        ต้นทุนแฝง ตั้งค่า
+    suppliers/       ซัพพลายเออร์
+    ingredients/     วัตถุดิบดิบ + สต็อก
+    packaging/       บรรจุภัณฑ์
+    sub_recipes/     สูตรกึ่งสำเร็จรูป (น้ำจิ้ม ซอส ดอง)
+    production_logs/ บันทึกการผลิต
+    recipes/         สูตรเมนู (ใช้ ingredients + sub_recipes)
+    menus/           เมนูขาย + ราคา + กำไร
+    sales/           ยอดขายทุกบิล
+    staff/           พนักงาน + เช็คอิน
+    plans/           แผนการซื้อล่วงหน้า
+*/
+
+// ══════════════════════════════════════
+// AUTH FUNCTIONS
+// ══════════════════════════════════════
+export const FB = {
+  auth,
+  db,
+
+  // Login
+  async login(email, password) {
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      return { ok: true, user: cred.user };
+    } catch(e) {
+      return { ok: false, error: e.message };
     }
-  });
-}
+  },
 
-// ════════════════════════════════════
-// SCREEN & PAGE NAV
-// ════════════════════════════════════
-function go(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
-  document.getElementById(id).classList.add('on');
-  if(id==='s-app'){ updateTime(); renderHome(); }
-}
+  // Logout
+  async logout() {
+    await signOut(auth);
+  },
 
-function switchPg(p){
-  document.querySelectorAll('.pg').forEach(x=>x.classList.remove('on'));
-  document.querySelectorAll('.bnav-tab').forEach(x=>x.classList.remove('active'));
-  document.getElementById('pg-'+p).classList.add('on');
-  document.getElementById('nt-'+p)?.classList.add('active');
-  if(p==='stock') renderStock();
-  if(p==='sum') renderSum();
-  if(p==='home') renderHome();
-  if(p==='insight') renderInsight();
-  if(p==='staff') renderStaff();
-}
-
-// ════════════════════════════════════
-// LOGIN
-// ════════════════════════════════════
-let selRole='owner';
-function selectRole(r){
-  selRole=r;
-  document.getElementById('role-owner').className='role-card'+(r==='owner'?' selected':'');
-  document.getElementById('role-staff').className='role-card'+(r==='staff'?' selected':'');
-}
-
-function doLogin(){
-  const u=document.getElementById('loginUser').value.trim()||'ผู้ใช้';
-  curRole=selRole; curUser=u;
-  const tag=document.getElementById('roleTag');
-  tag.textContent=curRole==='owner'?'👑 เจ้าของ':'👨‍🍳 พนักงาน';
-  tag.className='topbar-role '+(curRole==='owner'?'role-owner':'role-staff');
-  document.getElementById('ownerHome').style.display=curRole==='owner'?'block':'none';
-  document.getElementById('staffHome').style.display=curRole==='staff'?'block':'none';
-  // owner เห็นทุก tab / staff ไม่เห็น sum, insight, staff
-  const allTabs=['nt-home','nt-prep','nt-market','nt-stock','nt-pos','nt-sum','nt-insight','nt-staff'];
-  const staffHide=['nt-sum','nt-insight','nt-staff'];
-  allTabs.forEach(id=>{
-    const el=document.getElementById(id);
-    if(!el) return;
-    if(curRole==='owner') el.style.display='flex';
-    else el.style.display=staffHide.includes(id)?'none':'flex';
-  });
-  if(curRole==='staff'){
-    document.getElementById('staffName').textContent='สวัสดี '+curUser+'!';
-  }
-  go('s-app');
-}
-
-// ════════════════════════════════════
-// TIME
-// ════════════════════════════════════
-function updateTime(){
-  const now=new Date();
-  const h=String(now.getHours()).padStart(2,'0');
-  const m=String(now.getMinutes()).padStart(2,'0');
-  const shift=now.getHours()<14?'กะเช้า':'กะบ่าย';
-  document.getElementById('topTime').textContent=`${shift} ${h}:${m}`;
-  document.getElementById('homeDate').textContent=now.toLocaleDateString('th-TH',{day:'numeric',month:'short'});
-  const st=document.getElementById('staffTime');
-  if(st) st.textContent=`${h}:${m} น.`;
-  setTimeout(updateTime,30000);
-}
-
-// ════════════════════════════════════
-// GP CALCULATOR (pre-login)
-// ════════════════════════════════════
-function calcGP(){
-  const grab=parseFloat(document.getElementById('gpGrab').value)||0;
-  const line=parseFloat(document.getElementById('gpLine').value)||0;
-  const shop=parseFloat(document.getElementById('gpShop').value)||0;
-  if(!grab&&!line&&!shop) return;
-  const grabFee=Math.round(grab*GP_RATE);
-  const lineFee=Math.round(line*GP_RATE);
-  const total=grabFee+lineFee;
-  const netOnline=grab+line-total;
-  document.getElementById('gpGrabFee').textContent='฿'+grabFee.toLocaleString();
-  document.getElementById('gpLineFee').textContent='฿'+lineFee.toLocaleString();
-  document.getElementById('gpNetOnline').textContent='฿'+netOnline.toLocaleString();
-  document.getElementById('gpTotalFee').textContent='฿'+total.toLocaleString();
-  document.getElementById('gpResult').style.display='block';
-  const shock=document.getElementById('gpShock');
-  if(total>0){
-    const yr=total*12;
-    shock.style.display='block';
-    shock.innerHTML=`😱 คุณจ่าย GP ไป <strong style="color:#f87171">฿${total.toLocaleString()}/เดือน</strong><br>หรือ <strong style="color:#f87171">฿${yr.toLocaleString()}/ปี</strong><br><br>เท่ากับเงินเดือนพนักงาน <strong>${Math.floor(yr/36000)} คน</strong> ต่อปี<br>ระบบเราช่วยให้คุณติดตามทุกบาทที่เสียไป`;
-  }
-}
-
-// ════════════════════════════════════
-// HOME
-// ════════════════════════════════════
-function renderHome(){
-  const all=daySales;
-  const rev=all.reduce((s,x)=>s+x.menu.price*x.qty,0);
-  const cogs=all.reduce((s,x)=>s+x.menu.cost*x.qty,0);
-  const gpGrab=all.filter(x=>x.channel==='grab').reduce((s,x)=>s+x.menu.price*GP_RATE,0);
-  const gpLine=all.filter(x=>x.channel==='lineman').reduce((s,x)=>s+x.menu.price*GP_RATE,0);
-  const gpTotal=gpGrab+gpLine;
-  const profit=rev-cogs-gpTotal-HIDDEN;
-  const margin=rev?Math.round(profit/rev*100):0;
-  const bills=Math.max(1,Math.floor(all.length/2));
-
-  document.getElementById('homeRev').textContent='฿'+rev.toLocaleString();
-  document.getElementById('homeBills').textContent=bills+' บิล · เฉลี่ย ฿'+(bills?Math.round(rev/bills):0);
-  document.getElementById('homeProfit').textContent='฿'+Math.max(profit,0).toLocaleString();
-  document.getElementById('homeMargin').textContent='margin '+margin+'%';
-
-  // GP today
-  const grabRev=all.filter(x=>x.channel==='grab').reduce((s,x)=>s+x.menu.price,0);
-  const lineRev=all.filter(x=>x.channel==='lineman').reduce((s,x)=>s+x.menu.price,0);
-  document.getElementById('gpGrabToday').textContent=Math.round(grabRev).toLocaleString();
-  document.getElementById('gpGrabFeeToday').textContent=Math.round(grabRev*GP_RATE).toLocaleString();
-  document.getElementById('gpLineToday').textContent=Math.round(lineRev).toLocaleString();
-  document.getElementById('gpLineFeeToday').textContent=Math.round(lineRev*GP_RATE).toLocaleString();
-  document.getElementById('gpTotalToday').textContent='฿'+Math.round(gpTotal).toLocaleString();
-
-  // channel
-  const ch={cash:0,qr:0,grab:0,lineman:0};
-  all.forEach(s=>ch[s.channel]=(ch[s.channel]||0)+s.menu.price);
-  const chMap=[
-    {k:'cash',label:'💵 เงินสด',gp:0},
-    {k:'qr',label:'📱 โอน/QR',gp:0},
-    {k:'grab',label:'🟢 Grab',gp:GP_RATE},
-    {k:'lineman',label:'🛵 LINE MAN',gp:GP_RATE},
-  ];
-  document.getElementById('channelRows').innerHTML=chMap.map(c=>{
-    const gross=ch[c.k]||0;
-    const net=Math.round(gross*(1-c.gp));
-    const margin2=gross?Math.round(net/gross*100):0;
-    return `<div class="row">
-      <div class="row-body"><div class="row-name">${c.label}</div><div class="row-sub">ยอด ฿${Math.round(gross).toLocaleString()} ${c.gp?'· GP '+Math.round(c.gp*100)+'%':''}</div></div>
-      <div class="row-right"><div class="row-price">${net>0?'฿'+net.toLocaleString():'—'}</div><div style="font-size:11px;color:${margin2>40?'var(--green)':'var(--orange)'}">${net>0?'net '+margin2+'%':''}</div></div>
-    </div>`;
-  }).join('');
-
-  // stock alerts
-  const lowItems=ING.filter(g=>{
-    const lots=stock[g.id]||[];
-    const tot=lots.reduce((s,l)=>s+l.qty,0);
-    return tot<g.suggest*0.3;
-  });
-  const alertEl=document.getElementById('stockAlerts');
-  alertEl.innerHTML=lowItems.length?`<div class="card" style="padding:12px 14px">
-    <div class="card-title">⚠️ สต็อกใกล้หมด</div>
-    ${lowItems.map(g=>{
-      const tot=stock[g.id]?.reduce((s,l)=>s+l.qty,0)||0;
-      return `<div class="stock-alert danger">${g.icon} ${g.name} เหลือ ${tot.toFixed(1)} ${g.unit} — ต้องซื้อพรุ่งนี้</div>`;
-    }).join('')}
-  </div>`:'';
-
-  // staff stats
-  document.getElementById('staffBills').textContent=bills;
-  document.getElementById('staffRev').textContent='฿'+rev.toLocaleString();
-  const mc={};
-  all.forEach(s=>{ if(!mc[s.menu.id]) mc[s.menu.id]={...s.menu,qty:0}; mc[s.menu.id].qty+=s.qty; });
-  const top3=Object.values(mc).sort((a,b)=>b.qty-a.qty).slice(0,3);
-  document.getElementById('staffTopMenus').innerHTML=top3.length?top3.map(m=>`
-    <div class="row"><div class="row-icon">${m.emoji}</div><div class="row-body"><div class="row-name">${m.name}</div></div><div class="row-price">${m.qty} ที่</div></div>`).join(''):'<div style="color:var(--muted);font-size:13px">ยังไม่มีออเดอร์</div>';
-}
-
-// ════════════════════════════════════
-// PREP
-// ════════════════════════════════════
-function renderPrep(){
-  document.getElementById('prepList').innerHTML=ING.map(g=>{
-    const on=!!selPrep[g.id];
-    const s=selPrep[g.id]||{qty:g.suggest,price:g.prev};
-    return `<div class="prep-row">
-      <div class="prep-head" onclick="togPrep('${g.id}')">
-        <div class="pcheck ${on?'on':''}" id="pc-${g.id}"></div>
-        <span style="font-size:19px">${g.icon}</span>
-        <div style="flex:1"><div style="font-size:14px;font-weight:600">${g.name}</div>
-          <div style="font-size:11px;color:var(--muted)">แนะนำ ${g.suggest} ${g.unit} · ก่อน ฿${g.prev}/${g.unit}</div></div>
-        <div style="font-size:15px;color:var(--muted)">${on?'▲':'▼'}</div>
-      </div>
-      <div class="prep-exp ${on?'open':''}" id="pe-${g.id}">
-        <div class="prep-inputs">
-          <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">จำนวน (${g.unit})</div>
-            <input class="inp" type="number" id="pq-${g.id}" value="${s.qty}" step="0.5" inputmode="decimal" oninput="updPrep('${g.id}')"></div>
-          <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">ราคา/หน่วย (฿)</div>
-            <input class="inp" type="number" id="pp-${g.id}" value="${s.price}" inputmode="numeric" oninput="updPrep('${g.id}')"></div>
-        </div>
-        <div class="prep-calc" id="pca-${g.id}">—</div>
-      </div>
-    </div>`;
-  }).join('');
-  ING.forEach(g=>{ if(selPrep[g.id]) updPrep(g.id); });
-  updPrepBar();
-}
-
-function togPrep(id){
-  const g=ING.find(x=>x.id===id);
-  if(selPrep[id]) delete selPrep[id];
-  else selPrep[id]={qty:g.suggest,price:g.prev};
-  renderPrep();
-}
-
-function updPrep(id){
-  const g=ING.find(x=>x.id===id);
-  const q=parseFloat(document.getElementById('pq-'+id)?.value)||0;
-  const p=parseFloat(document.getElementById('pp-'+id)?.value)||0;
-  const tot=q*p; const diff=p-g.prev;
-  const ds=diff>0?`<span style="color:var(--red)">▲ +฿${diff}/${g.unit}</span>`:diff<0?`<span style="color:var(--green)">▼ ฿${Math.abs(diff)}/${g.unit}</span>`:'ราคาเท่าเดิม';
-  const el=document.getElementById('pca-'+id);
-  if(el) el.innerHTML=`฿${tot.toLocaleString()} (${q} ${g.unit} × ฿${p}) · ${ds}`;
-  if(selPrep[id]){ selPrep[id].qty=q; selPrep[id].price=p; }
-  updPrepBar();
-}
-
-function updPrepBar(){
-  const keys=Object.keys(selPrep);
-  const tot=keys.reduce((s,id)=>s+(selPrep[id].qty*selPrep[id].price),0);
-  const bar=document.getElementById('prepBar');
-  if(keys.length){ bar.style.display='block'; document.getElementById('prepCnt').textContent=keys.length; document.getElementById('prepEst').textContent='฿'+Math.round(tot).toLocaleString(); }
-  else bar.style.display='none';
-}
-
-function goMarket(){
-  const keys=Object.keys(selPrep);
-  if(!keys.length){ alert('กรุณาเลือกรายการก่อน'); return; }
-  mktItems=keys.map(id=>{ const g=ING.find(x=>x.id===id); const s=selPrep[id]; return {...g,planQty:s.qty,planPrice:s.price,planTotal:s.qty*s.price}; });
-  renderMkt(); switchPg('market');
-}
-
-// ════════════════════════════════════
-// MARKET
-// ════════════════════════════════════
-function renderMkt(){
-  const empty=document.getElementById('mktEmpty'), content=document.getElementById('mktContent');
-  if(!mktItems.length){ empty.style.display='block'; content.style.display='none'; return; }
-  empty.style.display='none'; content.style.display='block';
-  const est=mktItems.reduce((s,x)=>s+x.planTotal,0);
-  document.getElementById('mktEst').textContent='฿'+Math.round(est).toLocaleString();
-  document.getElementById('mktList').innerHTML=mktItems.map(it=>`
-    <div style="border-bottom:1px solid var(--border);padding:12px 0">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-        <div class="row-icon">${it.icon}</div>
-        <div><div style="font-size:14px;font-weight:600">${it.name}</div>
-          <div style="font-size:11px;color:var(--muted)">วางแผน ${it.planQty} ${it.unit} · ก่อน ฿${it.prev}/${it.unit}</div></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-left:46px">
-        <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">ซื้อได้จริง (${it.unit})</div>
-          <input class="inp" type="number" id="mq-${it.id}" value="${it.planQty}" step="0.5" inputmode="decimal" oninput="updMkt()"></div>
-        <div><div style="font-size:11px;color:var(--muted);margin-bottom:3px">ราคาจริง/หน่วย</div>
-          <input class="inp" type="number" id="mp-${it.id}" value="${it.planPrice}" inputmode="numeric" oninput="updMkt()"></div>
-      </div>
-      <div style="margin:5px 0 0 46px;font-size:12px;font-family:var(--mono)" id="mc-${it.id}"></div>
-    </div>`).join('');
-  updMkt();
-}
-
-function updMkt(){
-  let grand=0, warns=[];
-  mktItems.forEach(it=>{
-    const q=parseFloat(document.getElementById('mq-'+it.id)?.value)||0;
-    const p=parseFloat(document.getElementById('mp-'+it.id)?.value)||0;
-    const tot=q*p; grand+=tot;
-    const diff=p-it.prev;
-    const ds=diff>0?`<span style="color:var(--red)">▲ แพงขึ้น ${Math.round(diff/it.prev*100)}%</span>`:diff<0?`<span style="color:var(--green)">▼ ถูกลง ${Math.round(Math.abs(diff)/it.prev*100)}%</span>`:'<span style="color:var(--muted)">ราคาเท่าเดิม</span>';
-    const el=document.getElementById('mc-'+it.id);
-    if(el) el.innerHTML=`<strong>฿${tot.toLocaleString()}</strong> · ${ds}`;
-    if(p>it.prev*1.05) warns.push(`<div class="row"><div class="row-icon">${it.icon}</div><div class="row-body"><div class="row-name">${it.name}</div><div class="row-sub">ก่อน ฿${it.prev} → วันนี้ ฿${p}/${it.unit}</div></div><div class="row-price c-orange">+${Math.round((p-it.prev)/it.prev*100)}%</div></div>`);
-  });
-  const est=mktItems.reduce((s,x)=>s+x.planTotal,0);
-  document.getElementById('mktTotal').textContent='฿'+Math.round(grand).toLocaleString();
-  const d=grand-est;
-  document.getElementById('mktDiff').innerHTML=d>0?`<span style="color:var(--red)">เกินประมาณ ฿${Math.round(d).toLocaleString()}</span>`:d<0?`<span style="color:var(--green)">ประหยัด ฿${Math.round(Math.abs(d)).toLocaleString()}</span>`:'';
-  const wc=document.getElementById('warnCard');
-  if(warns.length){ wc.style.display='block'; document.getElementById('warnList').innerHTML=warns.join(''); }
-  else wc.style.display='none';
-}
-
-function confirmBuy(){
-  let total=0;
-  mktItems.forEach(it=>{
-    const q=parseFloat(document.getElementById('mq-'+it.id)?.value)||it.planQty;
-    const p=parseFloat(document.getElementById('mp-'+it.id)?.value)||it.planPrice;
-    total+=q*p;
-    if(!stock[it.id]) stock[it.id]=[];
-    stock[it.id].push({lot:'L'+String(stock[it.id].length+2).padStart(3,'0'),date:'วันนี้',qty:q,unit:it.unit,price:p,isNew:true});
-  });
-  purchaseTotal=total;
-  alert('✅ บันทึกการซื้อเรียบร้อย\nสต็อกอัปเดตแล้ว');
-  switchPg('stock');
-}
-
-// ════════════════════════════════════
-// STOCK
-// ════════════════════════════════════
-function renderStock(){
-  let html='';
-  ING.forEach(g=>{
-    const lots=stock[g.id]||[];
-    if(!lots.length) return;
-    const tot=lots.reduce((s,l)=>s+l.qty,0);
-    const pct=Math.min(tot/g.suggest/2*100,100);
-    const cls=pct<25?'danger':pct<55?'warn':'';
-    html+=`<div style="margin-bottom:14px">
-      <div style="display:flex;justify-content:space-between;margin-bottom:3px">
-        <div style="font-size:14px;font-weight:600">${g.icon} ${g.name}</div>
-        <div style="font-size:13px;font-family:var(--mono);font-weight:700;color:${cls==='danger'?'var(--red)':cls==='warn'?'var(--orange)':'var(--green)'}">${tot.toFixed(1)} ${g.unit}</div>
-      </div>
-      <div class="prog"><div class="prog-fill ${cls}" style="width:${pct}%"></div></div>
-      <div style="margin-top:5px;display:flex;flex-direction:column;gap:2px">
-        ${lots.map(l=>`<div style="font-size:12px;display:flex;gap:8px;align-items:center">
-          <span class="tag ${l.isNew?'tag-new':'tag-old'}">${l.isNew?'ใหม่':'เก่า'}</span>
-          <span style="color:var(--muted)">${l.lot} · ${l.date}</span>
-          <span style="font-family:var(--mono);margin-left:auto">${l.qty} ${l.unit} @ ฿${l.price}</span>
-        </div>`).join('')}
-      </div>
-    </div>`;
-  });
-  document.getElementById('stockList').innerHTML=html||'<div style="color:var(--muted);font-size:13px">ยังไม่มีสต็อก</div>';
-  document.getElementById('buySummary').innerHTML=purchaseTotal>0
-    ?`<div class="row"><div class="row-body"><div class="row-name">รวมค่าวัตถุดิบวันนี้</div><div class="row-sub">ส่งเข้าต้นทุนอัตโนมัติ</div></div><div class="row-price">฿${Math.round(purchaseTotal).toLocaleString()}</div></div>`
-    :'<div style="color:var(--muted);font-size:13px">ยังไม่มีการซื้อวันนี้</div>';
-}
-
-// ════════════════════════════════════
-// POS
-// ════════════════════════════════════
-let curCat='all';
-function fcat(c,btn){
-  curCat=c;
-  document.querySelectorAll('.pos-left .btn').forEach(b=>b.className='btn btn-sm btn-outline');
-  btn.className='btn btn-sm btn-dark';
-  renderMgrid();
-}
-function renderMgrid(){
-  const list=curCat==='all'?MENUS:MENUS.filter(m=>m.cat===curCat);
-  document.getElementById('mgrid').innerHTML=list.map(m=>{
-    const q=order[m.id]?.qty||0;
-    const g=Math.round((m.price-m.cost)/m.price*100);
-    return `<div class="mcard" onclick="addOrd('${m.id}')">
-      ${q?`<div class="mcard-qbadge">${q}</div>`:''}
-      ${m.cat==='promo'?'<div style="position:absolute;top:7px;right:7px"><span class="tag tag-promo">โปร</span></div>':''}
-      <div class="mcard-emoji">${m.emoji}</div>
-      <div class="mcard-name">${m.name}</div>
-      ${m.sub?`<div style="font-size:10px;color:var(--muted);margin-bottom:2px">${m.sub}</div>`:''}
-      <div class="mcard-price">฿${m.price}</div>
-      <div class="mcard-margin">กำไร ${g}%</div>
-    </div>`;
-  }).join('');
-}
-function addOrd(id){
-  const m=MENUS.find(x=>x.id===id); if(!m) return;
-  if(!order[id]) order[id]={...m,qty:0};
-  order[id].qty++;
-  renderMgrid(); renderOrd();
-}
-function chgOrd(id,d){
-  if(!order[id]) return;
-  order[id].qty+=d;
-  if(order[id].qty<=0) delete order[id];
-  renderMgrid(); renderOrd();
-}
-function clearOrd(){ order={}; document.getElementById('cashInp').value=''; renderMgrid(); renderOrd(); }
-function renderOrd(){
-  const items=Object.values(order);
-  const total=items.reduce((s,i)=>s+i.price*i.qty,0);
-  const profit=items.reduce((s,i)=>s+(i.price-i.cost)*i.qty,0);
-  const count=items.reduce((s,i)=>s+i.qty,0);
-  document.getElementById('ototal').textContent='฿'+total.toLocaleString();
-  document.getElementById('oitems').textContent=count+' รายการ';
-  document.getElementById('obadge').textContent=count?`(${count})`:'';
-  document.getElementById('oprofit').textContent=profit?`กำไร ฿${profit.toLocaleString()}`:'';
-  const list=document.getElementById('olist');
-  if(!items.length){
-    list.innerHTML='<div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:.35;gap:6px"><div style="font-size:30px">🐟</div><div style="font-size:13px;color:var(--muted)">ยังไม่มีรายการ</div></div>';
-    document.getElementById('btnPay').disabled=true; return;
-  }
-  list.innerHTML=items.map(i=>`<div class="oitem">
-    <div style="flex:1"><div style="font-size:13px;font-weight:500">${i.emoji} ${i.name}</div><div style="font-size:12px;color:var(--muted);font-family:var(--mono)">฿${i.price} × ${i.qty}</div></div>
-    <div class="qrow"><button class="qbtn" onclick="chgOrd('${i.id}',-1)">−</button><span class="qn">${i.qty}</span><button class="qbtn" onclick="chgOrd('${i.id}',1)">+</button></div>
-  </div>`).join('');
-  calcChg();
-}
-function setPay(m){
-  payMode=m;
-  ['Cash','QR','Grab'].forEach(x=>document.getElementById('b'+x).className='btn btn-sm btn-outline');
-  document.getElementById('b'+m.charAt(0).toUpperCase()+m.slice(1)).className='btn btn-sm btn-dark';
-  document.getElementById('cashRow').style.display=m==='cash'?'block':'none';
-  if(m!=='cash'){ document.getElementById('btnPay').disabled=!Object.keys(order).length; document.getElementById('btnPay').textContent='รับเงินแล้ว ✓'; }
-}
-function calcChg(){
-  const items=Object.values(order);
-  const total=items.reduce((s,i)=>s+i.price*i.qty,0);
-  const cash=parseFloat(document.getElementById('cashInp').value)||0;
-  const change=cash-total;
-  const btn=document.getElementById('btnPay');
-  const cr=document.getElementById('chgRow');
-  if(!items.length){btn.disabled=true;return;}
-  if(payMode==='cash'){
-    if(cash>=total&&total>0){
-      cr.style.display='flex'; document.getElementById('chgVal').textContent='฿'+change.toLocaleString();
-      btn.disabled=false; btn.textContent=change>0?`ทอน ฿${change.toLocaleString()} ✓`:'รับพอดี ✓';
-    } else { cr.style.display='none'; btn.disabled=true; btn.textContent='รับเงินแล้ว ✓'; }
-  }
-}
-function confirmPay(){
-  const items=Object.values(order);
-  const total=items.reduce((s,i)=>s+i.price*i.qty,0);
-  const hour=new Date().getHours();
-  items.forEach(i=>{ for(let q=0;q<i.qty;q++) daySales.push({menu:i,qty:1,time:hour,channel:payMode}); });
-  const cash=parseFloat(document.getElementById('cashInp').value)||0;
-  const change=payMode==='cash'?cash-total:0;
-  const gpAmt=payMode==='grab'?Math.round(total*GP_RATE):0;
-  document.getElementById('modalMsg').innerHTML=
-    payMode==='cash'?(change>0?`ทอนเงิน <strong>฿${change.toLocaleString()}</strong>`:'รับพอดี')
-    :payMode==='grab'?`Grab ฿${total.toLocaleString()} · GP ที่เสีย ฿${gpAmt.toLocaleString()}`
-    :`โอน ฿${total.toLocaleString()}`;
-  document.getElementById('modal').style.display='flex';
-  renderHome();
-}
-function closeModal(){ document.getElementById('modal').style.display='none'; clearOrd(); }
-
-// ════════════════════════════════════
-// SUMMARY
-// ════════════════════════════════════
-function renderSum(){
-  const all=daySales;
-  const rev=all.reduce((s,x)=>s+x.menu.price*x.qty,0);
-  const cogs=all.reduce((s,x)=>s+x.menu.cost*x.qty,0);
-  const gpTotal=all.filter(x=>x.channel==='grab'||x.channel==='lineman').reduce((s,x)=>s+x.menu.price*GP_RATE,0);
-  const profit=rev-cogs-gpTotal-HIDDEN;
-  const margin=rev?Math.round(profit/rev*100):0;
-  const bills=Math.max(1,Math.floor(all.length/2));
-  document.getElementById('sRev').textContent='฿'+rev.toLocaleString();
-  document.getElementById('sBills').textContent=bills+' บิล · เฉลี่ย ฿'+(bills?Math.round(rev/bills):0);
-  document.getElementById('sProfit').textContent='฿'+Math.max(profit,0).toLocaleString();
-  document.getElementById('sMargin').textContent='margin '+margin+'%';
-  document.getElementById('sCOGS').textContent='฿'+cogs.toLocaleString();
-  document.getElementById('sGP').textContent='฿'+Math.round(gpTotal).toLocaleString();
-
-  const hrs=[10,11,12,13,14,15,16,17,18,19,20];
-  const hs={}; hrs.forEach(h=>hs[h]=0);
-  all.forEach(s=>{ if(hs[s.time]!==undefined) hs[s.time]+=s.menu.price; });
-  const maxH=Math.max(...Object.values(hs),1);
-  const peakH=Object.entries(hs).sort((a,b)=>b[1]-a[1])[0];
-  document.getElementById('hourBars').innerHTML=hrs.map(h=>`<div class="bar-w"><div class="bar-b" style="height:${Math.round(hs[h]/maxH*100)}%"></div><div class="bar-l">${h}</div></div>`).join('');
-  document.getElementById('peakH').textContent=peakH?peakH[0]+':00 น. (฿'+Number(peakH[1]).toLocaleString()+')':'—';
-
-  const mc={};
-  all.forEach(s=>{ if(!mc[s.menu.id]) mc[s.menu.id]={...s.menu,qty:0,rev:0}; mc[s.menu.id].qty+=s.qty; mc[s.menu.id].rev+=s.menu.price*s.qty; });
-  const top=Object.values(mc).sort((a,b)=>b.qty-a.qty).slice(0,5);
-  document.getElementById('topMenus').innerHTML=top.length?top.map((m,i)=>`<div class="row"><div class="row-icon">${m.emoji}</div><div class="row-body"><div class="row-name">${m.name}</div><div class="row-sub">${m.qty} ที่ · ฿${m.rev.toLocaleString()}</div></div><div style="font-size:18px">${['🥇','🥈','🥉','4️⃣','5️⃣'][i]}</div></div>`).join(''):'<div style="color:var(--muted);font-size:13px">ยังไม่มียอดขาย</div>';
-  const pp=Object.values(mc).sort((a,b)=>(b.price-b.cost)-(a.price-a.cost)).slice(0,5);
-  document.getElementById('profitMenus').innerHTML=pp.length?pp.map(m=>{ const g=Math.round((m.price-m.cost)/m.price*100); return `<div class="row"><div class="row-icon">${m.emoji}</div><div class="row-body"><div class="row-name">${m.name}</div><div class="row-sub">฿${m.price} · ต้นทุน ฿${m.cost} · กำไร ฿${m.price-m.cost}/จาน</div><div class="prog" style="margin-top:3px"><div class="prog-fill" style="width:${g}%"></div></div></div><div style="font-weight:800;font-family:var(--mono);color:var(--green)">${g}%</div></div>`; }).join(''):'<div style="color:var(--muted);font-size:13px">ยังไม่มียอดขาย</div>';
-
-  const now=new Date();
-  renderSumExtra();
-  document.getElementById('lineMsg').innerHTML=`🐟 ใจดีซีฟู้ด ${now.toLocaleDateString('th-TH')}<br>━━━━━━━━━━━━━━<br>💰 ยอดขาย: ฿${rev.toLocaleString()}<br>📦 ต้นทุน: ฿${cogs.toLocaleString()}<br>🟢 GP ออนไลน์: ฿${Math.round(gpTotal).toLocaleString()}<br>🏠 ทุนแฝง: ฿${HIDDEN.toLocaleString()}<br>✅ กำไรจริง: ฿${Math.max(profit,0).toLocaleString()}<br>━━━━━━━━━━━━━━<br>🥇 ขายดี: ${top[0]?.name||'—'}<br>⏰ ชั่วโมงทอง: ${peakH?peakH[0]+':00':'—'}<br>🛒 พรุ่งนี้: เตรียมแซลมอนเพิ่ม`;
-}
-
-
-// ════════════════════════════════════
-// STAFF DATA
-// ════════════════════════════════════
-const STAFF_DATA = [
-  {id:'s1', name:'แอน', role:'พนักงาน', shift:'เช้า', wage:350, checkin:'07:02', status:'in', sales:0},
-  {id:'s2', name:'บอม', role:'พนักงาน', shift:'เช้า', wage:350, checkin:'07:15', status:'in', sales:0},
-  {id:'s3', name:'นิ้ง', role:'ครัว', shift:'เช้า', wage:380, checkin:'06:55', status:'in', sales:0},
-  {id:'s4', name:'เจ', role:'พนักงาน', shift:'บ่าย', wage:350, checkin:'—', status:'out', sales:0},
-];
-
-// ════════════════════════════════════
-// INSIGHT PAGE
-// ════════════════════════════════════
-function renderInsight() {
-  genOrderRec();
-  renderSmartAlerts();
-  renderOpportunities();
-  renderExpandAnalysis();
-  renderTrend();
-}
-
-function genOrderRec() {
-  const avgSales = { sa:2.5, st:2.0, sh:1.0, sr:1.5, sq:1.0, sc:0.5, ri:5.0, no:3.0, mn:2.0, sb:1.0 };
-  const tmrBoost = new Date().getDay()===6||new Date().getDay()===0 ? 1.3 : 1.0;
-  const label = tmrBoost>1 ? '🎉 พรุ่งนี้เสาร์/อาทิตย์ +30%' : '📅 วันธรรมดาปกติ';
-
-  let recHtml = `<div style="font-size:12px;color:#9ca3af;margin-bottom:10px">${label}</div>`;
-  let totalEst = 0;
-
-  ING.forEach(g => {
-    const lots = stock[g.id] || [];
-    const haveQty = lots.reduce((s,l)=>s+l.qty, 0);
-    const needQty = Math.ceil((avgSales[g.id]||g.suggest) * tmrBoost * 10) / 10;
-    const buyQty = Math.max(0, needQty - haveQty);
-    const estCost = buyQty * g.prev;
-    totalEst += estCost;
-
-    const status = buyQty <= 0 ? 'ok' : buyQty > needQty*0.7 ? 'urgent' : 'normal';
-    const statusColor = status==='ok'?'#4ade80':status==='urgent'?'#f87171':'#fbbf24';
-    const statusText = status==='ok'?'✅ พอแล้ว':status==='urgent'?'🔴 ต้องซื้อ':'🟡 ควรซื้อ';
-
-    recHtml += `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08)">
-      <span style="font-size:18px">${g.icon}</span>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:600;color:#f9fafb">${g.name}</div>
-        <div style="font-size:11px;color:#9ca3af">มี ${haveQty.toFixed(1)} ${g.unit} · ต้องการ ${needQty.toFixed(1)} ${g.unit}</div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:12px;font-weight:700;color:${statusColor}">${statusText}</div>
-        <div style="font-size:11px;color:#9ca3af">${buyQty>0?`ซื้อ ${buyQty.toFixed(1)} ${g.unit} (~฿${Math.round(estCost).toLocaleString()})`:''}</div>
-      </div>
-    </div>`;
-  });
-
-  recHtml += `<div style="margin-top:12px;padding:10px;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);border-radius:8px;display:flex;justify-content:space-between;align-items:center">
-    <span style="font-size:13px;color:#9ca3af">ประมาณค่าใช้จ่ายพรุ่งนี้</span>
-    <span style="font-size:18px;font-weight:800;font-family:var(--mono);color:#4ade80">฿${Math.round(totalEst).toLocaleString()}</span>
-  </div>`;
-
-  document.getElementById('orderRec').innerHTML = recHtml;
-
-  // Pre-order summary
-  const items = ING.map(g => {
-    const lots = stock[g.id]||[];
-    const have = lots.reduce((s,l)=>s+l.qty,0);
-    const need = Math.ceil((avgSales[g.id]||g.suggest)*tmrBoost*10)/10;
-    const buy = Math.max(0, need-have);
-    return {g, have, need, buy, est: buy*g.prev};
-  }).filter(x=>x.buy>0);
-
-  document.getElementById('preOrderSum').innerHTML = items.length ? `
-    <div style="font-size:12px;color:var(--muted);margin-bottom:10px">รายการที่ต้องซื้อพรุ่งนี้ ${items.length} รายการ</div>
-    ${items.map((x,i)=>`<div class="row">
-      <div style="font-size:14px;font-weight:700;color:var(--muted);min-width:20px">${i+1}</div>
-      <div class="row-icon">${x.g.icon}</div>
-      <div class="row-body"><div class="row-name">${x.g.name}</div>
-        <div class="row-sub">มี ${x.have.toFixed(1)} · ต้องการ ${x.need.toFixed(1)} · ซื้อ ${x.buy.toFixed(1)} ${x.g.unit}</div>
-      </div>
-      <div class="row-right"><div class="row-price">฿${Math.round(x.est).toLocaleString()}</div></div>
-    </div>`).join('')}
-    <div class="divider"></div>
-    <div style="display:flex;justify-content:space-between">
-      <span style="font-size:14px;font-weight:700">รวมประมาณการ</span>
-      <span style="font-size:18px;font-weight:800;font-family:var(--mono);color:var(--green)">฿${Math.round(items.reduce((s,x)=>s+x.est,0)).toLocaleString()}</span>
-    </div>` : '<div style="color:var(--green);font-size:14px;font-weight:600">✅ สต็อกพอสำหรับพรุ่งนี้</div>';
-}
-
-function renderSmartAlerts() {
-  const alerts = [];
-  const all = daySales;
-
-  // Check stock vs sales velocity
-  ING.forEach(g => {
-    const lots = stock[g.id]||[];
-    const have = lots.reduce((s,l)=>s+l.qty,0);
-    const avgSale = g.suggest;
-    const hoursLeft = have/avgSale*10;
-    if(hoursLeft < 3 && hoursLeft > 0) {
-      alerts.push({type:'danger', icon:'🔴', msg:`<strong>${g.name}</strong> เหลือพอใช้แค่ ~${Math.round(hoursLeft)} ชั่วโมง ถ้ายอดขายปกติ`});
+  // Register store owner
+  async register(email, password, storeName, ownerName) {
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      const uid = cred.user.uid;
+      // สร้าง store document
+      await setDoc(doc(db, 'stores', uid), {
+        info: {
+          name: storeName,
+          owner: ownerName,
+          plan: 'free',
+          createdAt: serverTimestamp()
+        },
+        settings: {
+          labor_per_day: 1400,
+          rent_per_month: 3000,
+          gas_per_month: 900,
+          electric_per_month: 600,
+          gp_grab: 0.30,
+          gp_lineman: 0.30,
+        }
+      });
+      return { ok: true, storeId: uid };
+    } catch(e) {
+      return { ok: false, error: e.message };
     }
-  });
+  },
 
-  // Check GP eating profit
-  const gpSales = all.filter(x=>x.channel==='grab'||x.channel==='lineman');
-  const gpRev = gpSales.reduce((s,x)=>s+x.menu.price,0);
-  const gpFee = Math.round(gpRev*GP_RATE);
-  if(gpFee > 500) {
-    alerts.push({type:'warn', icon:'⚠️', msg:`วันนี้จ่าย GP ออนไลน์ไป <strong>฿${gpFee.toLocaleString()}</strong> ถ้าลูกค้ามาหน้าร้านแทนจะประหยัดได้ ฿${gpFee.toLocaleString()}`});
+  // Watch auth state
+  onAuth(callback) {
+    return onAuthStateChanged(auth, callback);
+  },
+
+  // ══════════════════════════════════════
+  // STORE HELPERS
+  // ══════════════════════════════════════
+  storeRef(storeId) {
+    return doc(db, 'stores', storeId);
+  },
+
+  col(storeId, colName) {
+    return collection(db, 'stores', storeId, colName);
+  },
+
+  // ══════════════════════════════════════
+  // SETTINGS
+  // ══════════════════════════════════════
+  async getSettings(storeId) {
+    const snap = await getDoc(doc(db, 'stores', storeId));
+    return snap.exists() ? snap.data().settings : null;
+  },
+
+  async saveSettings(storeId, settings) {
+    await updateDoc(doc(db, 'stores', storeId), { settings });
+  },
+
+  // ══════════════════════════════════════
+  // SUPPLIERS
+  // ══════════════════════════════════════
+  async getSuppliers(storeId) {
+    const snap = await getDocs(this.col(storeId, 'suppliers'));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+
+  async saveSupplier(storeId, data) {
+    if(data.id) {
+      await updateDoc(doc(db, 'stores', storeId, 'suppliers', data.id), data);
+      return data.id;
+    }
+    const ref = await addDoc(this.col(storeId, 'suppliers'), { ...data, createdAt: serverTimestamp() });
+    return ref.id;
+  },
+
+  async deleteSupplier(storeId, supplierId) {
+    await deleteDoc(doc(db, 'stores', storeId, 'suppliers', supplierId));
+  },
+
+  // ══════════════════════════════════════
+  // INGREDIENTS
+  // ══════════════════════════════════════
+  async getIngredients(storeId) {
+    const snap = await getDocs(this.col(storeId, 'ingredients'));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+
+  async saveIngredient(storeId, data) {
+    if(data.id) {
+      const { id, ...rest } = data;
+      await updateDoc(doc(db, 'stores', storeId, 'ingredients', id), rest);
+      return id;
+    }
+    const ref = await addDoc(this.col(storeId, 'ingredients'), { ...data, createdAt: serverTimestamp() });
+    return ref.id;
+  },
+
+  // อัปเดตราคาและสต็อก + บันทึกประวัติ
+  async updateIngredientPrice(storeId, ingredientId, newPrice, qty, supplierId) {
+    const ref = doc(db, 'stores', storeId, 'ingredients', ingredientId);
+    const snap = await getDoc(ref);
+    const current = snap.data();
+    const priceHistory = current.price_history || [];
+    priceHistory.push({ price: current.current_price, date: new Date().toISOString(), supplierId });
+    await updateDoc(ref, {
+      current_price: newPrice,
+      stock_qty: increment(qty),
+      price_history: priceHistory,
+      last_updated: serverTimestamp()
+    });
+  },
+
+  // ตัดสต็อกเมื่อขาย
+  async deductStock(storeId, ingredientId, qty) {
+    const ref = doc(db, 'stores', storeId, 'ingredients', ingredientId);
+    await updateDoc(ref, { stock_qty: increment(-qty) });
+  },
+
+  // Real-time สต็อก
+  watchIngredients(storeId, callback) {
+    return onSnapshot(this.col(storeId, 'ingredients'), snap => {
+      callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+  },
+
+  // ══════════════════════════════════════
+  // PACKAGING
+  // ══════════════════════════════════════
+  async getPackaging(storeId) {
+    const snap = await getDocs(this.col(storeId, 'packaging'));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+
+  async savePackaging(storeId, data) {
+    if(data.id) {
+      const { id, ...rest } = data;
+      await updateDoc(doc(db, 'stores', storeId, 'packaging', id), rest);
+      return id;
+    }
+    const ref = await addDoc(this.col(storeId, 'packaging'), data);
+    return ref.id;
+  },
+
+  // ══════════════════════════════════════
+  // SUB-RECIPES (น้ำจิ้ม ซอส ดอง)
+  // ══════════════════════════════════════
+  async getSubRecipes(storeId) {
+    const snap = await getDocs(this.col(storeId, 'sub_recipes'));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+
+  async saveSubRecipe(storeId, data) {
+    if(data.id) {
+      const { id, ...rest } = data;
+      await updateDoc(doc(db, 'stores', storeId, 'sub_recipes', id), rest);
+      return id;
+    }
+    const ref = await addDoc(this.col(storeId, 'sub_recipes'), data);
+    return ref.id;
+  },
+
+  // คำนวณต้นทุน Sub-recipe จาก ingredients ปัจจุบัน
+  async calcSubRecipeCost(storeId, subRecipe) {
+    const ingredients = await this.getIngredients(storeId);
+    const packaging = await this.getPackaging(storeId);
+    const settings = await this.getSettings(storeId);
+    const ingMap = Object.fromEntries(ingredients.map(i => [i.id, i]));
+    const pkgMap = Object.fromEntries(packaging.map(p => [p.id, p]));
+
+    let cost = 0;
+    for(const item of (subRecipe.ingredients || [])) {
+      const ing = ingMap[item.ingredient_id];
+      if(ing) cost += (ing.current_price / ing.unit_size) * item.qty;
+    }
+    for(const pkg of (subRecipe.packaging || [])) {
+      const p = pkgMap[pkg.packaging_id];
+      if(p) cost += p.price_per_unit * pkg.qty;
+    }
+    // ค่าแรง
+    const laborPerMin = (settings.labor_per_day / 8 / 60);
+    cost += laborPerMin * (subRecipe.labor_mins || 0);
+
+    const costPerUnit = cost / (subRecipe.yield_qty || 1);
+    return { total_cost: cost, cost_per_unit: costPerUnit };
+  },
+
+  // ══════════════════════════════════════
+  // PRODUCTION LOGS
+  // ══════════════════════════════════════
+  async logProduction(storeId, subRecipeId, qty, ingredients) {
+    // ตัดวัตถุดิบออก
+    for(const item of ingredients) {
+      await this.deductStock(storeId, item.ingredient_id, item.qty_used);
+    }
+    // เพิ่ม sub_recipe stock
+    const ref = doc(db, 'stores', storeId, 'sub_recipes', subRecipeId);
+    await updateDoc(ref, { stock_qty: increment(qty) });
+    // บันทึก log
+    await addDoc(this.col(storeId, 'production_logs'), {
+      sub_recipe_id: subRecipeId,
+      qty_produced: qty,
+      ingredients_used: ingredients,
+      produced_at: serverTimestamp(),
+      expires_at: null
+    });
+  },
+
+  // ══════════════════════════════════════
+  // RECIPES (สูตรเมนู)
+  // ══════════════════════════════════════
+  async getRecipes(storeId) {
+    const snap = await getDocs(this.col(storeId, 'recipes'));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+
+  async saveRecipe(storeId, data) {
+    if(data.id) {
+      const { id, ...rest } = data;
+      await updateDoc(doc(db, 'stores', storeId, 'recipes', id), rest);
+      return id;
+    }
+    const ref = await addDoc(this.col(storeId, 'recipes'), data);
+    return ref.id;
+  },
+
+  // คำนวณต้นทุนเมนู Real-time
+  async calcMenuCost(storeId, recipe) {
+    const ingredients = await this.getIngredients(storeId);
+    const subRecipes = await this.getSubRecipes(storeId);
+    const packaging = await this.getPackaging(storeId);
+    const settings = await this.getSettings(storeId);
+
+    const ingMap = Object.fromEntries(ingredients.map(i => [i.id, i]));
+    const srMap = Object.fromEntries(subRecipes.map(s => [s.id, s]));
+    const pkgMap = Object.fromEntries(packaging.map(p => [p.id, p]));
+
+    let rawCost = 0;
+
+    // วัตถุดิบดิบ
+    for(const item of (recipe.ingredients || [])) {
+      const ing = ingMap[item.ingredient_id];
+      if(ing) {
+        const wasteFactor = 1 + (item.waste_pct || 0) / 100;
+        rawCost += (ing.current_price / (ing.unit_size || 1000)) * item.qty * wasteFactor;
+      }
+    }
+
+    // Sub-recipes
+    for(const item of (recipe.sub_recipes || [])) {
+      const sr = srMap[item.sub_recipe_id];
+      if(sr) rawCost += (sr.cost_per_unit || 0) * item.qty;
+    }
+
+    // บรรจุภัณฑ์
+    for(const item of (recipe.packaging || [])) {
+      const pkg = pkgMap[item.packaging_id];
+      if(pkg) rawCost += pkg.price_per_unit * item.qty;
+    }
+
+    // ต้นทุนแฝงต่อจาน
+    const dailyFixed = (settings.labor_per_day || 0) + 
+                       (settings.rent_per_month || 0) / 26 + 
+                       (settings.gas_per_month || 0) / 26 + 
+                       (settings.electric_per_month || 0) / 26;
+    const avgDailyOrders = 80; // เฉลี่ย ปรับได้
+    const indirectCost = dailyFixed / avgDailyOrders;
+
+    const totalCost = rawCost + indirectCost;
+    return {
+      raw_cost: rawCost,
+      indirect_cost: indirectCost,
+      total_cost: totalCost,
+      calculated_at: new Date().toISOString()
+    };
+  },
+
+  // ══════════════════════════════════════
+  // MENUS
+  // ══════════════════════════════════════
+  async getMenus(storeId) {
+    const snap = await getDocs(this.col(storeId, 'menus'));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+
+  async saveMenu(storeId, data) {
+    if(data.id) {
+      const { id, ...rest } = data;
+      await updateDoc(doc(db, 'stores', storeId, 'menus', id), rest);
+      return id;
+    }
+    const ref = await addDoc(this.col(storeId, 'menus'), data);
+    return ref.id;
+  },
+
+  // อัปเดตต้นทุนเมนูทั้งหมด (เรียกหลังซื้อของจากตลาด)
+  async refreshAllMenuCosts(storeId) {
+    const recipes = await this.getRecipes(storeId);
+    const menus = await this.getMenus(storeId);
+    const recipeMap = Object.fromEntries(recipes.map(r => [r.id, r]));
+
+    for(const menu of menus) {
+      if(menu.recipe_id && recipeMap[menu.recipe_id]) {
+        const cost = await this.calcMenuCost(storeId, recipeMap[menu.recipe_id]);
+        const margin = menu.price ? ((menu.price - cost.total_cost) / menu.price * 100) : 0;
+        await updateDoc(doc(db, 'stores', storeId, 'menus', menu.id), {
+          cost_breakdown: cost,
+          current_cost: cost.total_cost,
+          margin_pct: margin,
+          last_cost_update: serverTimestamp()
+        });
+      }
+    }
+  },
+
+  // Watch menus real-time
+  watchMenus(storeId, callback) {
+    return onSnapshot(this.col(storeId, 'menus'), snap => {
+      callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+  },
+
+  // ══════════════════════════════════════
+  // SALES / POS
+  // ══════════════════════════════════════
+  async recordSale(storeId, order) {
+    // บันทึกออเดอร์
+    const saleRef = await addDoc(this.col(storeId, 'sales'), {
+      ...order,
+      created_at: serverTimestamp(),
+      date: new Date().toISOString().split('T')[0]
+    });
+
+    // ตัดสต็อกอัตโนมัติ
+    const recipes = await this.getRecipes(storeId);
+    const recipeMap = Object.fromEntries(recipes.map(r => [r.id, r]));
+
+    for(const item of order.items) {
+      const menu = item.menu;
+      if(menu.recipe_id && recipeMap[menu.recipe_id]) {
+        const recipe = recipeMap[menu.recipe_id];
+        // ตัดวัตถุดิบ
+        for(const ing of (recipe.ingredients || [])) {
+          await this.deductStock(storeId, ing.ingredient_id, ing.qty * item.qty);
+        }
+        // ตัด sub_recipes
+        for(const sr of (recipe.sub_recipes || [])) {
+          const ref = doc(db, 'stores', storeId, 'sub_recipes', sr.sub_recipe_id);
+          await updateDoc(ref, { stock_qty: increment(-sr.qty * item.qty) });
+        }
+      }
+    }
+    return saleRef.id;
+  },
+
+  // ดูยอดขายวันนี้
+  async getTodaySales(storeId) {
+    const today = new Date().toISOString().split('T')[0];
+    const q = query(this.col(storeId, 'sales'), where('date', '==', today));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+
+  // Real-time ยอดขาย
+  watchTodaySales(storeId, callback) {
+    const today = new Date().toISOString().split('T')[0];
+    const q = query(this.col(storeId, 'sales'), where('date', '==', today));
+    return onSnapshot(q, snap => {
+      callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+  },
+
+  // ══════════════════════════════════════
+  // STAFF
+  // ══════════════════════════════════════
+  async getStaff(storeId) {
+    const snap = await getDocs(this.col(storeId, 'staff'));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  },
+
+  async saveStaff(storeId, data) {
+    if(data.id) {
+      const { id, ...rest } = data;
+      await updateDoc(doc(db, 'stores', storeId, 'staff', id), rest);
+      return id;
+    }
+    const ref = await addDoc(this.col(storeId, 'staff'), data);
+    return ref.id;
+  },
+
+  async checkin(storeId, staffId) {
+    const ref = doc(db, 'stores', storeId, 'staff', staffId);
+    const snap = await getDoc(ref);
+    const checkins = snap.data().checkins || [];
+    checkins.push({ type: 'in', time: new Date().toISOString() });
+    await updateDoc(ref, { checkins, status: 'in' });
+  },
+
+  async checkout(storeId, staffId) {
+    const ref = doc(db, 'stores', storeId, 'staff', staffId);
+    const snap = await getDoc(ref);
+    const checkins = snap.data().checkins || [];
+    checkins.push({ type: 'out', time: new Date().toISOString() });
+    await updateDoc(ref, { checkins, status: 'out' });
+  },
+
+  // ══════════════════════════════════════
+  // PLANS (วางแผนซื้อล่วงหน้า)
+  // ══════════════════════════════════════
+  async savePlan(storeId, plan) {
+    const date = plan.date || new Date().toISOString().split('T')[0];
+    await setDoc(doc(db, 'stores', storeId, 'plans', date), {
+      ...plan,
+      updated_at: serverTimestamp()
+    });
+  },
+
+  async getPlan(storeId, date) {
+    const snap = await getDoc(doc(db, 'stores', storeId, 'plans', date));
+    return snap.exists() ? snap.data() : null;
+  },
+
+  // ══════════════════════════════════════
+  // ANALYTICS
+  // ══════════════════════════════════════
+  async getSalesSummary(storeId, days = 7) {
+    const dates = [];
+    for(let i = 0; i < days; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      dates.push(d.toISOString().split('T')[0]);
+    }
+    const results = {};
+    for(const date of dates) {
+      const q = query(this.col(storeId, 'sales'), where('date', '==', date));
+      const snap = await getDocs(q);
+      const sales = snap.docs.map(d => d.data());
+      results[date] = {
+        revenue: sales.reduce((s,x) => s + (x.total || 0), 0),
+        profit: sales.reduce((s,x) => s + (x.profit || 0), 0),
+        bills: sales.length,
+        gp: sales.reduce((s,x) => s + (x.gp_fee || 0), 0)
+      };
+    }
+    return results;
+  },
+
+  // คาดการณ์พรุ่งนี้
+  async forecastTomorrow(storeId) {
+    const summary = await this.getSalesSummary(storeId, 14);
+    const values = Object.values(summary);
+    const avgRevenue = values.reduce((s,v) => s + v.revenue, 0) / values.length;
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const isWeekend = [0, 6].includes(tomorrow.getDay());
+    const forecast = avgRevenue * (isWeekend ? 1.3 : 1.0);
+    return { forecast, isWeekend, avgRevenue };
   }
+};
 
-  // Check slow hours
-  const hrs = {}; const all2 = daySales;
-  all2.forEach(s=>{hrs[s.time]=(hrs[s.time]||0)+s.menu.price;});
-  const slowHrs = Object.entries(hrs).filter(([h,v])=>v<500).map(([h])=>h);
-  if(slowHrs.length > 0) {
-    alerts.push({type:'warn', icon:'💡', msg:`ช่วง <strong>${slowHrs.slice(0,2).join(':00, ')}:00</strong> ยอดขายต่ำมาก ลองทำโปรโมชันดึงลูกค้าช่วงนี้`});
-  }
-
-  // Menu recommendation
-  alerts.push({type:'info', icon:'📌', msg:`<strong>ชุดแทสเมเนียน 500g</strong> ขายดีที่สุด กำไร 53% ควรเตรียมสต็อกแทสเมเนียนให้พอทุกวัน`});
-
-  const el = document.getElementById('smartAlerts');
-  el.innerHTML = alerts.map(a=>`
-    <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #fde68a">
-      <div style="font-size:20px;flex-shrink:0">${a.icon}</div>
-      <div style="font-size:13px;color:#78350f;line-height:1.5">${a.msg}</div>
-    </div>`).join('') || '<div style="font-size:13px;color:var(--muted)">ไม่มีการแจ้งเตือนตอนนี้ ✅</div>';
-}
-
-function renderOpportunities() {
-  const all = daySales;
-  const mc = {};
-  all.forEach(s=>{ if(!mc[s.menu.id]) mc[s.menu.id]={...s.menu,qty:0,rev:0}; mc[s.menu.id].qty+=s.qty; mc[s.menu.id].rev+=s.menu.price*s.qty; });
-
-  const opps = [
-    {
-      icon:'🚀', title:'ดันเมนูกำไรสูง',
-      desc:'โทโร่ซาชิมิ 200g กำไร 46% แต่ยังขายได้น้อย ถ้าขายเพิ่มวันละ 4 ที่',
-      impact:`+฿${(4*195).toLocaleString()}/วัน`, color:'var(--green)'
-    },
-    {
-      icon:'⏰', title:'Happy Hour 14:00-16:00',
-      desc:'ช่วงนี้ยอดต่ำมาก ทำโปรลด 10% ดึงลูกค้าช่วงนี้ได้',
-      impact:`+฿${(500).toLocaleString()}/วัน`, color:'var(--green)'
-    },
-    {
-      icon:'🟢', title:'ลด Grab เพิ่มหน้าร้าน',
-      desc:'Grab กำไรจริง 31% หน้าร้าน 48% ดึงลูกค้าออนไลน์มาหน้าร้านได้ 20%',
-      impact:`+฿${(800).toLocaleString()}/เดือน`, color:'var(--green)'
-    },
-    {
-      icon:'✂️', title:'ตัดเมนูที่ไม่คุ้ม',
-      desc:'กิมจิโฮมเมดขายได้แค่ 2 ชิ้น/วัน ใช้เวลาทำ 45 นาที กำไรต่อชั่วโมง ฿50',
-      impact:'ประหยัดเวลา 45 นาที/วัน', color:'var(--orange)'
-    },
-  ];
-
-  document.getElementById('opportunities').innerHTML = opps.map(o=>`
-    <div style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
-      <div style="font-size:28px;flex-shrink:0">${o.icon}</div>
-      <div style="flex:1">
-        <div style="font-size:14px;font-weight:700;margin-bottom:3px">${o.title}</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:5px">${o.desc}</div>
-        <div style="font-size:13px;font-weight:700;color:${o.color}">${o.impact}</div>
-      </div>
-    </div>`).join('');
-}
-
-function renderExpandAnalysis() {
-  const all = daySales;
-  const rev = all.reduce((s,x)=>s+x.menu.price*x.qty,0);
-  const cogs = all.reduce((s,x)=>s+x.menu.cost*x.qty,0);
-  const gp = all.filter(x=>x.channel==='grab'||x.channel==='lineman').reduce((s,x)=>s+x.menu.price*GP_RATE,0);
-  const profit = rev-cogs-gp-HIDDEN;
-  const margin = rev?Math.round(profit/rev*100):0;
-  const monthlyProfit = profit*26;
-
-  const signals = [
-    {ok: margin>35, label:'กำไร Margin > 35%', val: margin+'%'},
-    {ok: monthlyProfit>80000, label:'กำไรเดือนละ > 80,000 บาท', val:'฿'+Math.round(monthlyProfit).toLocaleString()},
-    {ok: true, label:'มีชั่วโมงทองที่ลูกค้ารอ', val:'12:00-13:00'},
-    {ok: false, label:'สต็อกควบคุมได้แล้ว', val:'ยังต้องพัฒนา'},
-    {ok: false, label:'เงินสดสำรอง > 3 เดือน', val:'ยังไม่ทราบ'},
-  ];
-
-  const readyCount = signals.filter(s=>s.ok).length;
-  const readyPct = Math.round(readyCount/signals.length*100);
-
-  document.getElementById('expandAnalysis').innerHTML = `
-    <div style="text-align:center;padding:14px;background:var(--bg);border-radius:var(--rsm);margin-bottom:14px">
-      <div style="font-size:32px;font-weight:800;font-family:var(--mono);color:${readyPct>=80?'var(--green)':readyPct>=60?'var(--orange)':'var(--red)'}">${readyPct}%</div>
-      <div style="font-size:13px;color:var(--muted)">พร้อมขยายร้าน</div>
-      <div class="prog" style="margin-top:8px;height:8px"><div class="prog-fill ${readyPct<60?'warn':''}" style="width:${readyPct}%"></div></div>
-    </div>
-    ${signals.map(s=>`<div class="row">
-      <div style="font-size:18px">${s.ok?'✅':'❌'}</div>
-      <div class="row-body"><div class="row-name" style="font-size:13px">${s.label}</div></div>
-      <div style="font-size:13px;font-family:var(--mono);font-weight:600;color:${s.ok?'var(--green)':'var(--muted)'}">${s.val}</div>
-    </div>`).join('')}
-    <div style="margin-top:14px;padding:12px;background:var(--green-dim);border:1px solid #b7e4cc;border-radius:var(--rsm);font-size:13px;color:var(--green);line-height:1.6">
-      💡 ถ้ายอดขายโตแบบนี้ต่อเนื่อง<br>ควรพร้อมขยายได้ใน <strong>3-4 เดือน</strong>
-    </div>`;
-}
-
-function renderTrend() {
-  const days = ['จ','อ','พ','พฤ','ศ','ส','อา'];
-  const mockRevs = [9200, 11400, 10800, 13200, 11900, 16800, 15400];
-  const mockProfit = mockRevs.map(r=>Math.round(r*0.45));
-  const maxR = Math.max(...mockRevs);
-
-  document.getElementById('trendBars').innerHTML = mockRevs.map((r,i)=>`
-    <div class="bar-w">
-      <div class="bar-b" style="height:${Math.round(r/maxR*100)}%;background:${i===mockRevs.length-1?'var(--green)':'var(--accent)'}"></div>
-      <div class="bar-l">${days[i]}</div>
-    </div>`).join('');
-
-  const avgRev = Math.round(mockRevs.reduce((s,r)=>s+r,0)/mockRevs.length);
-  const avgProfit = Math.round(mockProfit.reduce((s,r)=>s+r,0)/mockProfit.length);
-  const growth = Math.round((mockRevs[mockRevs.length-1]-mockRevs[0])/mockRevs[0]*100);
-
-  document.getElementById('trendStats').innerHTML = `
-    <div style="background:var(--bg);border-radius:var(--rsm);padding:10px;text-align:center">
-      <div style="font-size:10px;color:var(--muted)">เฉลี่ย/วัน</div>
-      <div style="font-size:15px;font-weight:800;font-family:var(--mono)">฿${avgRev.toLocaleString()}</div>
-    </div>
-    <div style="background:var(--bg);border-radius:var(--rsm);padding:10px;text-align:center">
-      <div style="font-size:10px;color:var(--muted)">กำไรเฉลี่ย</div>
-      <div style="font-size:15px;font-weight:800;font-family:var(--mono);color:var(--green)">฿${avgProfit.toLocaleString()}</div>
-    </div>
-    <div style="background:var(--bg);border-radius:var(--rsm);padding:10px;text-align:center">
-      <div style="font-size:10px;color:var(--muted)">การเติบโต</div>
-      <div style="font-size:15px;font-weight:800;font-family:var(--mono);color:${growth>0?'var(--green)':'var(--red)'}">+${growth}%</div>
-    </div>`;
-}
-
-// ════════════════════════════════════
-// STAFF PAGE
-// ════════════════════════════════════
-function renderStaff() {
-  // Staff list
-  document.getElementById('staffList').innerHTML = STAFF_DATA.map(s=>`
-    <div class="row">
-      <div class="row-icon" style="background:${s.status==='in'?'#d1fae5':'#f3f4f6'}">${s.status==='in'?'🟢':'⚪'}</div>
-      <div class="row-body">
-        <div class="row-name">${s.name} <span style="font-size:11px;color:var(--muted);font-weight:400">· ${s.role}</span></div>
-        <div class="row-sub">กะ${s.shift} · ฿${s.wage}/วัน · เช็คอิน ${s.checkin}</div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:11px;padding:3px 8px;border-radius:20px;font-weight:600;background:${s.status==='in'?'#d1fae5':'#f3f4f6'};color:${s.status==='in'?'#065f46':'#6b7280'}">${s.status==='in'?'กำลังทำงาน':'ยังไม่มา'}</div>
-      </div>
-    </div>`).join('');
-
-  // Checkin list
-  const checkedIn = STAFF_DATA.filter(s=>s.status==='in');
-  document.getElementById('checkinList').innerHTML = checkedIn.map(s=>`
-    <div class="row">
-      <div style="font-size:20px">✅</div>
-      <div class="row-body"><div class="row-name">${s.name}</div><div class="row-sub">เช็คอิน ${s.checkin} น.</div></div>
-      <button class="btn btn-outline btn-sm" style="font-size:11px" onclick="alert('${s.name} เช็คเอาท์ ${new Date().toLocaleTimeString('th',{hour:'2-digit',minute:'2-digit'})} น.')">เช็คเอาท์</button>
-    </div>`).join('');
-
-  // Performance
-  const all = daySales;
-  const perfData = STAFF_DATA.filter(s=>s.status==='in').map((s,i)=>{
-    const sales = Math.floor(all.length/(checkedIn.length)*0.4*(i+1)*0.8+5);
-    const rev = sales * 320;
-    return {...s, salesToday: sales, revToday: rev};
-  }).sort((a,b)=>b.salesToday-a.salesToday);
-
-  document.getElementById('staffPerf').innerHTML = perfData.map((s,i)=>`
-    <div class="row">
-      <div style="font-size:18px">${['🥇','🥈','🥉','4️⃣'][i]||'▪️'}</div>
-      <div class="row-body">
-        <div class="row-name">${s.name}</div>
-        <div class="row-sub">${s.salesToday} ออเดอร์ · ฿${s.revToday.toLocaleString()}</div>
-        <div class="prog" style="margin-top:4px"><div class="prog-fill" style="width:${Math.min(s.salesToday/20*100,100)}%"></div></div>
-      </div>
-      <div class="row-right"><div class="row-price c-green">฿${s.revToday.toLocaleString()}</div></div>
-    </div>`).join('');
-
-  // Salary
-  const workDays = 26;
-  document.getElementById('salarySummary').innerHTML = STAFF_DATA.map(s=>`
-    <div class="row">
-      <div class="row-body">
-        <div class="row-name">${s.name} · ${s.role}</div>
-        <div class="row-sub">฿${s.wage}/วัน × ${workDays} วัน</div>
-      </div>
-      <div class="row-price">฿${(s.wage*workDays).toLocaleString()}</div>
-    </div>`).join('');
-
-  const totalSal = STAFF_DATA.reduce((s,x)=>s+x.wage*workDays,0);
-  document.getElementById('totalSalary').textContent = '฿'+totalSal.toLocaleString();
-
-  // Fraud alerts
-  document.getElementById('fraudAlerts').innerHTML = `
-    <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #fde68a">
-      <div style="font-size:20px">🟡</div>
-      <div style="font-size:13px;color:#78350f;line-height:1.5">ยอดขายเงินสดกะเช้าต่ำกว่าปกติ 15% ตรวจสอบบิลที่ยกเลิก</div>
-    </div>
-    <div style="display:flex;gap:10px;padding:10px 0">
-      <div style="font-size:20px">✅</div>
-      <div style="font-size:13px;color:#78350f;line-height:1.5">ไม่พบการยกเลิกออเดอร์ผิดปกติ</div>
-    </div>`;
-}
-
-function showAddStaff() {
-  const name = prompt('ชื่อพนักงานใหม่:');
-  if(name) alert('เพิ่ม '+name+' เรียบร้อย ✓\nระบบจะส่ง PIN เข้าสู่ระบบให้ทาง LINE');
-}
-
-
-// ════════════════════════════════════
-// EXTENDED SUMMARY FUNCTIONS
-// ════════════════════════════════════
-const YESTERDAY = {rev:12400, profit:5100, bills:38, cogs:5580, gp:1240};
-const MOCK_WEEK = [9200,11400,10800,13200,11900,16800,15400];
-
-function renderSumExtra() {
-  const all = daySales;
-  const rev = all.reduce((s,x)=>s+x.menu.price*x.qty,0);
-  const cogs = all.reduce((s,x)=>s+x.menu.cost*x.qty,0);
-  const gp = all.filter(x=>x.channel==='grab'||x.channel==='lineman').reduce((s,x)=>s+x.menu.price*GP_RATE,0);
-  const profit = rev-cogs-gp-HIDDEN;
-  const bills = Math.max(1,Math.floor(all.length/2));
-  const cashSales = all.filter(x=>x.channel==='cash').reduce((s,x)=>s+x.menu.price,0);
-
-  // ── vs Yesterday ──
-  const revDiff = rev - YESTERDAY.rev;
-  const profDiff = profit - YESTERDAY.profit;
-    const mkDiff = function(v,pos) {
-    var col = v>=0?'var(--green)':'var(--red)';
-    var sign = v>=0?'+':'';
-    var val = pos ? '\u0e3f'+Math.abs(Math.round(v)).toLocaleString() : Math.round(v)+'%';
-    return '<span style="color:'+col+';font-weight:700">'+sign+val+'</span>';
-  };
-  document.getElementById('vsYesterday').innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <div style="background:var(--bg);border-radius:var(--rsm);padding:12px">
-        <div style="font-size:11px;color:var(--muted)">ยอดขาย</div>
-        <div style="font-size:16px;font-weight:800;font-family:var(--mono)">฿${rev.toLocaleString()}</div>
-        <div style="font-size:12px;margin-top:2px">${mkDiff(revDiff,true)} จากเมื่อวาน</div>
-      </div>
-      <div style="background:var(--bg);border-radius:var(--rsm);padding:12px">
-        <div style="font-size:11px;color:var(--muted)">กำไรจริง</div>
-        <div style="font-size:16px;font-weight:800;font-family:var(--mono);color:var(--green)">฿${Math.max(profit,0).toLocaleString()}</div>
-        <div style="font-size:12px;margin-top:2px">${mkDiff(profDiff,true)} จากเมื่อวาน</div>
-      </div>
-      <div style="background:var(--bg);border-radius:var(--rsm);padding:12px">
-        <div style="font-size:11px;color:var(--muted)">จำนวนบิล</div>
-        <div style="font-size:16px;font-weight:800;font-family:var(--mono)">${bills}</div>
-        <div style="font-size:12px;margin-top:2px">${mkDiff(bills-YESTERDAY.bills,false)} จากเมื่อวาน</div>
-      </div>
-      <div style="background:var(--bg);border-radius:var(--rsm);padding:12px">
-        <div style="font-size:11px;color:var(--muted)">เฉลี่ย/บิล</div>
-        <div style="font-size:16px;font-weight:800;font-family:var(--mono)">฿${bills?Math.round(rev/bills).toLocaleString():0}</div>
-        <div style="font-size:12px;margin-top:2px">${mkDiff(bills?Math.round(rev/bills)-Math.round(YESTERDAY.rev/YESTERDAY.bills):0,true)} จากเมื่อวาน</div>
-      </div>
-    </div>`;
-
-  // ── Cash Drawer ──
-  document.getElementById('cashDrawer').innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
-      <span style="font-size:13px;color:var(--muted)">ยอดเงินสดในระบบ</span>
-      <span style="font-size:16px;font-weight:800;font-family:var(--mono)" id="sysCash">฿${Math.round(cashSales).toLocaleString()}</span>
-    </div>
-    <div style="font-size:12px;color:var(--muted)">นับเงินสดจริงแล้วใส่ด้านล่าง</div>`;
-
-  // ── Shift Compare ──
-  const morning = all.filter(x=>x.time>=10&&x.time<14);
-  const afternoon = all.filter(x=>x.time>=14);
-  const mRev = morning.reduce((s,x)=>s+x.menu.price,0);
-  const aRev = afternoon.reduce((s,x)=>s+x.menu.price,0);
-  const mProfit = morning.reduce((s,x)=>s+(x.menu.price-x.menu.cost),0);
-  const aProfit = afternoon.reduce((s,x)=>s+(x.menu.price-x.menu.cost),0);
-  const mBills = Math.max(1,Math.floor(morning.length/2));
-  const aBills = Math.max(1,Math.floor(afternoon.length/2));
-
-  document.getElementById('shiftCompare').innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <div style="background:#f0faf5;border:1px solid #b7e4cc;border-radius:var(--rsm);padding:14px">
-        <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:8px">☀️ กะเช้า 10:00-14:00</div>
-        <div style="font-size:18px;font-weight:800;font-family:var(--mono)">฿${mRev.toLocaleString()}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px">${mBills} บิล</div>
-        <div style="font-size:12px;color:var(--green);margin-top:4px">กำไร ฿${Math.max(mProfit,0).toLocaleString()}</div>
-      </div>
-      <div style="background:#fff9f0;border:1px solid #fcd34d;border-radius:var(--rsm);padding:14px">
-        <div style="font-size:12px;font-weight:700;color:var(--orange);margin-bottom:8px">🌙 กะบ่าย 14:00-21:00</div>
-        <div style="font-size:18px;font-weight:800;font-family:var(--mono)">฿${aRev.toLocaleString()}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px">${aBills} บิล</div>
-        <div style="font-size:12px;color:var(--orange);margin-top:4px">กำไร ฿${Math.max(aProfit,0).toLocaleString()}</div>
-      </div>
-    </div>
-    <div style="margin-top:10px;padding:10px;background:var(--bg);border-radius:var(--rsm);font-size:13px;color:var(--muted)">
-      ${mRev>aRev?'☀️ กะเช้าทำยอดดีกว่า':'🌙 กะบ่ายทำยอดดีกว่า'} <strong style="color:var(--accent)">฿${Math.abs(mRev-aRev).toLocaleString()}</strong>
-    </div>`;
-
-  // ── Staff Sales ──
-  const staffSales = STAFF_DATA.map((s,i)=>{
-    const shift = s.shift==='เช้า' ? morning : afternoon;
-    const mockRev = Math.round(shift.reduce((ss,x)=>ss+x.menu.price,0)/(STAFF_DATA.filter(x=>x.shift===s.shift).length||1)*0.8*(i%2===0?1.2:0.9));
-    return {...s, mockRev, mockBills: Math.max(1,Math.round(mockRev/320))};
-  }).sort((a,b)=>b.mockRev-a.mockRev);
-
-  document.getElementById('staffSalesSummary').innerHTML = staffSales.map((s,i)=>`
-    <div class="row">
-      <div style="font-size:18px">${['🥇','🥈','🥉','4️⃣'][i]||'▪️'}</div>
-      <div class="row-body">
-        <div class="row-name">${s.name} <span style="font-size:11px;color:var(--muted)">· กะ${s.shift}</span></div>
-        <div class="row-sub">${s.mockBills} บิล</div>
-        <div class="prog" style="margin-top:3px">
-          <div class="prog-fill" style="width:${Math.min(s.mockRev/staffSales[0].mockRev*100,100)}%"></div>
-        </div>
-      </div>
-      <div class="row-right">
-        <div class="row-price">฿${s.mockRev.toLocaleString()}</div>
-        <div style="font-size:11px;color:var(--muted)">ค่าแรง ฿${s.wage}</div>
-      </div>
-    </div>`).join('');
-
-  // ── Ingredient Used ──
-  const ingUsed = [
-    {id:'sa',used:1.8},{id:'st',used:1.5},{id:'sh',used:0.6},
-    {id:'sr',used:1.1},{id:'ri',used:3.2},{id:'no',used:1.5},
-    {id:'mn',used:0.8},{id:'sb',used:0.4},
-  ];
-  document.getElementById('ingredientUsed').innerHTML = ingUsed.map(u=>{
-    const g = ING.find(x=>x.id===u.id);
-    const lots = stock[g.id]||[];
-    const before = lots.reduce((s,l)=>s+l.qty,0) + u.used;
-    const remaining = lots.reduce((s,l)=>s+l.qty,0);
-    const pct = Math.round(u.used/before*100);
-    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
-      <span style="font-size:18px">${g.icon}</span>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:600">${g.name}</div>
-        <div style="font-size:11px;color:var(--muted)">ใช้ไป ${u.used} ${g.unit} · เหลือ ${remaining.toFixed(1)} ${g.unit}</div>
-        <div class="prog" style="margin-top:3px">
-          <div class="prog-fill ${remaining<g.suggest*0.3?'danger':remaining<g.suggest*0.6?'warn':''}" style="width:${Math.min(remaining/(g.suggest*2)*100,100)}%"></div>
-        </div>
-      </div>
-      <div style="font-size:12px;font-family:var(--mono);color:var(--muted);text-align:right">
-        <div>ใช้ ${pct}%</div>
-        <div style="color:${remaining<g.suggest*0.3?'var(--red)':'var(--muted)'}">
-          ${remaining<g.suggest*0.3?'⚠️ ต้องซื้อ':'✅ พอ'}
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-
-  // ── Tomorrow Buy List ──
-  const tmrDay = new Date(); tmrDay.setDate(tmrDay.getDate()+1);
-  const isWeekend = tmrDay.getDay()===0||tmrDay.getDay()===6;
-  const boost = isWeekend ? 1.3 : 1.0;
-  const toBuy = ING.map(g=>{
-    const lots = stock[g.id]||[];
-    const have = lots.reduce((s,l)=>s+l.qty,0);
-    const need = Math.round(g.suggest*boost*10)/10;
-    const buy = Math.max(0, need-have);
-    return {g, buy, est:Math.round(buy*g.prev)};
-  }).filter(x=>x.buy>0);
-
-  const tmrTotal = toBuy.reduce((s,x)=>s+x.est,0);
-  document.getElementById('tmrBuyList').innerHTML = `
-    <div style="font-size:12px;color:var(--muted);margin-bottom:10px">
-      ${isWeekend?'🎉 พรุ่งนี้เสาร์/อาทิตย์ เตรียมเพิ่ม 30%':'📅 พรุ่งนี้วันธรรมดา'} · ${toBuy.length} รายการ
-    </div>
-    ${toBuy.map((x,i)=>`
-      <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #b7e4cc">
-        <div style="font-size:14px;font-weight:700;color:var(--green);min-width:18px">${i+1}</div>
-        <span style="font-size:18px">${x.g.icon}</span>
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:600">${x.g.name}</div>
-          <div style="font-size:11px;color:var(--muted)">${x.buy.toFixed(1)} ${x.g.unit} × ฿${x.g.prev}</div>
-        </div>
-        <div style="font-size:13px;font-weight:700;font-family:var(--mono);color:var(--green)">฿${x.est.toLocaleString()}</div>
-      </div>`).join('')}
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:10px;background:rgba(31,122,80,.1);border-radius:var(--rsm)">
-      <span style="font-size:13px;font-weight:700;color:var(--green)">รวมที่ต้องซื้อพรุ่งนี้</span>
-      <span style="font-size:18px;font-weight:800;font-family:var(--mono);color:var(--green)">฿${tmrTotal.toLocaleString()}</span>
-    </div>
-    <button class="btn btn-green btn-sm btn-full" style="margin-top:10px" onclick="switchPg('prep')">สร้างลิสต์ซื้อของ →</button>`;
-}
-
-function checkCash() {
-  const actual = parseFloat(document.getElementById('actualCash').value)||0;
-  if(!actual) return;
-  const all = daySales;
-  const cashSales = all.filter(x=>x.channel==='cash').reduce((s,x)=>s+x.menu.price,0);
-  const diff = actual - cashSales;
-  const el = document.getElementById('cashResult');
-  if(Math.abs(diff) < 10) {
-    el.innerHTML = `<div style="background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;padding:10px;font-size:13px;color:#065f46;font-weight:600">✅ เงินสดตรงกับระบบ! ยอดเยี่ยม</div>`;
-  } else if(diff < 0) {
-    el.innerHTML = `<div style="background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;padding:10px;font-size:13px;color:#991b1b">
-      ⚠️ เงินสดขาด <strong>฿${Math.abs(diff).toLocaleString()}</strong><br>
-      <span style="font-size:11px">ตรวจสอบออเดอร์ที่ยกเลิก หรือทอนเงินผิด</span>
-    </div>`;
-  } else {
-    el.innerHTML = `<div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:10px;font-size:13px;color:#92400e">
-      💡 เงินสดเกิน <strong>฿${diff.toLocaleString()}</strong><br>
-      <span style="font-size:11px">อาจมีออเดอร์ที่ยังไม่ได้บันทึก</span>
-    </div>`;
-  }
-}
-// ════════════════════════════════════
-// INIT
-// ════════════════════════════════════
-initStock();
-initMockSales();
-renderPrep();
-renderMgrid();
-</script>
-</body>
-</html>
+export default FB;
