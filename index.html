@@ -1828,8 +1828,15 @@ function renderIngList() {
 function setupEmojiGrid(gridId, hiddenId, sel) {
   const grid = document.getElementById(gridId);
   if(!grid) return;
-  const rawEmojis = ['🐟','🐠','🐡','🦐','🦑','🦪','🥩','🍗','🥚','🍚','🌿','🦴','🥕','🧅','🧄','🌶️','🍋','🥭','🍓','🧂','🫙','📦','🧴','🥛','💧','🧊','🍵','☕','🍣','🍱','🍜','🔥','🎁','❤️','🍽️','🥬','🥒','🥤','🧋','🍊'];
-  grid.innerHTML = rawEmojis.map(e => '<div class="emoji-btn ' + (e===sel?'sel':'') + '" onclick="selectEmoji('' + gridId + '','' + hiddenId + '','' + e + '',this)">' + e + '</div>').join('');
+  const em = ['🐟','🐠','🐡','🦐','🦑','🦪','🥩','🍗','🥚','🍚','🌿','🥕','🧅','🧄','🌶️','🍋','🥭','🍓','🧂','🫙','📦','🧴','🥛','💧','🧊','🍵','☕','🍣','🍱','🍜','🔥','🎁','🍽️','🥬','🥒','🥤','🧋','🍊'];
+  grid.innerHTML = '';
+  em.forEach(function(e) {
+    const d = document.createElement('div');
+    d.className = 'emoji-btn' + (e === sel ? ' sel' : '');
+    d.textContent = e;
+    d.onclick = function() { selectEmoji(this, gridId, hiddenId, e); };
+    grid.appendChild(d);
+  });
 }
 
 window.selectEmoji = function(el, gridId, hiddenId, emoji) {
