@@ -1820,18 +1820,19 @@ function renderIngList() {
   const el = document.getElementById('ingList');
   if(!el) return;
   if(!ingredients.length) { el.innerHTML = '<div style="text-align:center;padding:28px;color:var(--muted);font-size:13px">ยังไม่มีวัตถุดิบ</div>'; return; }
-  el.innerHTML = ingredients.map(g => '<div class="row"><div class="row-icon">' + (g.icon||'x1F4E6') + '</div><div class="row-body"><div class="row-name">' + g.name + '</div><div class="row-sub">฿' + (g.current_price||0) + '/' + g.unit + ' · ' + (g.stock_qty||0).toFixed(1) + ' ' + g.unit + '</div></div><div style="display:flex;gap:5px;flex-shrink:0"><button class="btn btn-outline btn-sm" onclick="editIng('' + g.id + '')">แก้</button><button class="btn btn-sm" style="background:none;color:var(--red);border:1px solid var(--red)" onclick="deleteIng('' + g.id + '')">ลบ</button></div></div>').join('');
+  el.innerHTML = ingredients.map(g => {
+    return '<div class="row"><div class="row-icon">' + (g.icon||'📦') + '</div><div class="row-body"><div class="row-name">' + g.name + '</div><div class="row-sub">฿' + (g.current_price||0) + '/' + g.unit + ' · ' + ((g.stock_qty||0).toFixed(1)) + ' ' + g.unit + '/วัน</div></div><div style="display:flex;gap:5px;flex-shrink:0"><button class="btn btn-outline btn-sm" onclick="editIng(\''+g.id+'\')">แก้</button><button class="btn btn-sm" style="background:none;color:var(--red);border:1px solid var(--red)" onclick="deleteIng(\''+g.id+'\')">ลบ</button></div></div>';
+  }).join('');
 }
 
 function setupEmojiGrid(gridId, hiddenId, sel) {
   const grid = document.getElementById(gridId);
   if(!grid) return;
-  const emojis = ['x1F41F','x1F420','x1F421','x1F990','x1F991','x1F9AA','x1F969','x1F357','x1F95A','x1F35A','x1F33F','x1F956','x1F955','x1F9C5','x1F9C4','x1F336','x1F34B','x1FAD9','x1F353','x1F9C2','x1FAD9','x1F4E6','x1F9F4','x1F9C8','x1F4A7','x1F9CA','x1F375','x2615'];
   const rawEmojis = ['🐟','🐠','🐡','🦐','🦑','🦪','🥩','🍗','🥚','🍚','🌿','🦴','🥕','🧅','🧄','🌶️','🍋','🥭','🍓','🧂','🫙','📦','🧴','🥛','💧','🧊','🍵','☕','🍣','🍱','🍜','🔥','🎁','❤️','🍽️','🥬','🥒','🥤','🧋','🍊'];
   grid.innerHTML = rawEmojis.map(e => '<div class="emoji-btn ' + (e===sel?'sel':'') + '" onclick="selectEmoji('' + gridId + '','' + hiddenId + '','' + e + '',this)">' + e + '</div>').join('');
 }
 
-window.selectEmoji = function(gridId, hiddenId, emoji, el) {
+window.selectEmoji = function(el, gridId, hiddenId, emoji) {
   document.querySelectorAll('#' + gridId + ' .emoji-btn').forEach(b => b.classList.remove('sel'));
   el.classList.add('sel');
   document.getElementById(hiddenId).value = emoji;
@@ -1890,9 +1891,14 @@ function renderSetMenuList() {
   if(!menus.length) { el.innerHTML = '<div style="text-align:center;padding:28px;color:var(--muted);font-size:13px">ยังไม่มีเมนู</div>'; return; }
   const cats = [...new Set(menus.map(m => m.cat||'อื่นๆ'))];
   el.innerHTML = cats.map(cat => {
-    const cm = menus.filter(m=>(m.cat||'อื่นๆ')===cat);
-    return '<div style="margin-bottom:12px"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">' + cat + '</div>' +
-    cm.map(m => { const c=m.current_cost||m.cost||0; const mg=m.price?Math.round((m.price-c)/m.price*100):0; const mc=mg>=35?'tag-green':'tag-gold'; return '<div class="row"><div class="row-icon">'+(m.emoji||'🍽️')+'</div><div class="row-body"><div class="row-name">'+m.name+' <span class="tag '+mc+'">'+mg+'%</span></div><div class="row-sub">฿'+m.price+' · ต้นทุน ฿'+c+'</div></div><div style="display:flex;gap:5px;flex-shrink:0"><button class="btn btn-outline btn-sm" onclick="editMenu(''+m.id+'')">แก้</button><button class="btn btn-sm" style="background:none;color:var(--red);border:1px solid var(--red)" onclick="deleteMenu(''+m.id+'')">ลบ</button></div></div>'; }).join('') + '</div>';
+    const cm = menus.filter(m => (m.cat||'อื่นๆ') === cat);
+    const rows = cm.map(m => {
+      const c = m.current_cost||m.cost||0;
+      const mg = m.price ? Math.round((m.price-c)/m.price*100) : 0;
+      const mc = mg>=35 ? 'tag-green' : 'tag-gold';
+      return '<div class="row"><div class="row-icon">'+(m.emoji||'🍽️')+'</div><div class="row-body"><div class="row-name">'+m.name+' <span class="tag '+mc+'">'+mg+'%</span></div><div class="row-sub">฿'+m.price+' · ต้นทุน ฿'+c+'</div></div><div style="display:flex;gap:5px;flex-shrink:0"><button class="btn btn-outline btn-sm" onclick="editMenu(\''+m.id+'\')">แก้</button><button class="btn btn-sm" style="background:none;color:var(--red);border:1px solid var(--red)" onclick="deleteMenu(\''+m.id+'\')">ลบ</button></div></div>';
+    }).join('');
+    return '<div style="margin-bottom:12px"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">'+cat+'</div>'+rows+'</div>';
   }).join('');
 }
 
