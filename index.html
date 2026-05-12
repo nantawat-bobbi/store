@@ -253,7 +253,10 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
     </div>
     <div class="field">
       <label class="lbl">รหัสผ่าน</label>
-      <input class="inp" id="loginPass" type="password" placeholder="••••••" autocomplete="current-password">
+      <div style="position:relative">
+      <input class="inp" id="loginPass" type="password" placeholder="••••••" autocomplete="current-password" style="padding-right:44px">
+      <button type="button" onclick="togglePw('loginPass',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:var(--muted)">👁</button>
+    </div>
     </div>
     <div class="login-err" id="loginErr"></div>
     <button class="btn-login" id="loginBtn" onclick="doLogin()">เข้าสู่ระบบ</button>
@@ -722,7 +725,10 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
     <div class="field"><label class="lbl">ชื่อร้าน</label><input class="inp" id="reg-store" placeholder="เช่น ร้านใจดีซีฟู้ด"></div>
     <div class="field"><label class="lbl">ชื่อเจ้าของ</label><input class="inp" id="reg-owner" placeholder="ชื่อของคุณ"></div>
     <div class="field"><label class="lbl">อีเมล</label><input class="inp" id="reg-email" type="email" placeholder="email@example.com"></div>
-    <div class="field"><label class="lbl">รหัสผ่าน</label><input class="inp" id="reg-pass" type="password" placeholder="อย่างน้อย 6 ตัว"></div>
+    <div class="field"><label class="lbl">รหัสผ่าน</label><div style="position:relative">
+        <input class="inp" id="reg-pass" type="password" placeholder="อย่างน้อย 6 ตัว" style="padding-right:44px">
+        <button type="button" onclick="togglePw('reg-pass',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:var(--muted)">👁</button>
+      </div></div>
     <div class="login-err" id="regErr"></div>
     <div class="modal-footer">
       <button class="btn btn-outline btn-full" onclick="closeRegModal()">ยกเลิก</button>
@@ -986,6 +992,11 @@ function setupRealtimeListeners() {
   unsubMenus = onSnapshot(col('menus'), snap => {
     menus = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderMenuGrid();
+    // Also refresh settings menu list if visible
+    const setMenuEl = document.getElementById('setMenuList');
+    if(setMenuEl && document.getElementById('s-settings').classList.contains('on')) {
+      renderSetMenuList();
+    }
   });
 }
 
@@ -1863,7 +1874,7 @@ window.saveIngredient = async function() {
   showLoad(true);
   try {
     if(editIngId) { await updateDoc(colDoc('ingredients',editIngId),data); ingredients=ingredients.map(g=>g.id===editIngId?{id:editIngId,...data}:g); toast('แก้ไขแล้ว'); }
-    else { const r=await addDoc(col('ingredients'),{...data,createdAt:serverTimestamp()}); ingredients.push({id:r.id,...data}); toast('เพิ่มวัตถุดิบแล้ว'); }
+    else { const r=await addDoc(col('ingredients'),{...data,createdAt:serverTimestamp()}); if(!ingredients.find(g=>g.id===r.id)) ingredients.push({id:r.id,...data}); toast('เพิ่มวัตถุดิบแล้ว ✓'); }
     window.closeIngModal(); renderIngList();
   } catch(e) { toast('เกิดข้อผิดพลาด'); }
   showLoad(false);
@@ -1940,10 +1951,18 @@ window.saveMenu = async function() {
   const data={name,price,cost,current_cost:cost,margin_pct:mg,cat:document.getElementById('m-cat').value,sub:document.getElementById('m-sub').value.trim(),emoji:document.getElementById('m-emoji-val').value||'🍽️',last_updated:serverTimestamp()};
   showLoad(true);
   try {
-    if(editMenuId){await updateDoc(colDoc('menus',editMenuId),data);menus=menus.map(m=>m.id===editMenuId?{id:editMenuId,...data}:m);toast('แก้ไขแล้ว');}
-    else{const r=await addDoc(col('menus'),{...data,createdAt:serverTimestamp()});menus.push({id:r.id,...data});toast('เพิ่มเมนูแล้ว');}
+    if(editMenuId){
+      await updateDoc(colDoc('menus',editMenuId),data);
+      menus=menus.map(m=>m.id===editMenuId?{id:editMenuId,...data}:m);
+      toast('แก้ไขแล้ว ✓');
+    } else {
+      const r=await addDoc(col('menus'),{...data,createdAt:serverTimestamp()});
+      // Check not duplicate before push
+      if(!menus.find(m=>m.id===r.id)) menus.push({id:r.id,...data});
+      toast('เพิ่มเมนูแล้ว ✓');
+    }
     window.closeMenuModal(); renderSetMenuList(); renderMenuGrid();
-  } catch(e){toast('เกิดข้อผิดพลาด');}
+  } catch(e){toast('เกิดข้อผิดพลาด: '+e.message);}
   showLoad(false);
 };
 
@@ -2021,6 +2040,25 @@ window.saveStoreInfo = async function() {
   showLoad(false);
 };
 
+
+window.togglePw = function(id, btn) {
+  const inp = document.getElementById(id);
+  if(!inp) return;
+  if(inp.type === 'password') {
+    inp.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    inp.type = 'password';
+    btn.textContent = '👁';
+  }
+};
+
+window.togglePw = function(id, btn) {
+  const inp = document.getElementById(id);
+  if(!inp) return;
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+};
 </script>
 </body>
 </html>
