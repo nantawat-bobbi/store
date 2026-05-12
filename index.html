@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>ร้านฉลาด</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -280,6 +280,12 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
 
       <!-- HOME -->
       <div class="pg on" id="pg-home">
+        <!-- RED FLAG DASHBOARD -->
+        <div id="redFlagBanner" style="display:none;background:#dc2626;color:#fff;border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;animation:pulse 1.5s infinite">
+          <div style="font-size:13px;font-weight:800;margin-bottom:6px">🚨 แจ้งเตือนวิกฤต</div>
+          <div id="redFlagMsg" style="font-size:12px;line-height:1.7"></div>
+        </div>
+        <style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:.85}}</style>
         <div class="card card-dark" id="homeCard">
           <div style="font-size:11px;color:#9ca3af;margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.6px">วันนี้ — <span id="homeDate"></span></div>
           <div class="stat-grid" style="margin-bottom:0">
@@ -288,7 +294,7 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
               <div style="font-size:20px;font-weight:800;font-family:var(--mono);color:#fff" id="homeRev">฿0</div>
               <div style="font-size:11px;color:#9ca3af" id="homeBills">0 บิล</div>
             </div>
-            <div style="background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.25);border-radius:10px;padding:12px">
+            <div id="profitBox" style="background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.25);border-radius:10px;padding:12px">
               <div style="font-size:11px;color:#9ca3af">กำไรจริง</div>
               <div style="font-size:20px;font-weight:800;font-family:var(--mono);color:#4ade80" id="homeProfit">฿0</div>
               <div style="font-size:11px;color:#9ca3af" id="homeMargin">0%</div>
@@ -436,6 +442,11 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
           <div style="font-size:14px;font-weight:800;margin-bottom:4px">🔮 วิเคราะห์อัจฉริยะ</div>
           <div style="font-size:12px;color:#9ca3af">ระบบตอบคำถามที่เจ้าของอยากรู้</div>
         </div>
+        <!-- Financial Waterfall -->
+        <div class="card">
+          <div class="card-title">💧 Financial Waterfall — เงินไหลไปไหน</div>
+          <div id="financialWaterfall"><div style="color:var(--muted);font-size:13px">กำลังโหลด...</div></div>
+        </div>
         <!-- คำถาม 1 -->
         <div class="card">
           <div class="card-title">ร้านฉันกำไรจริงไหม?</div>
@@ -561,8 +572,22 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
         <button class="btn btn-green btn-full" style="padding:13px;font-size:15px;margin-top:4px" onclick="saveCosts()">💾 บันทึกต้นทุน</button>
       </div>
       <div class="card" id="costCalcCard">
-        <div class="card-title">ต้นทุนแฝงต่อจาน</div>
+        <div class="card-title">ต้นทุนแฝงต่อจาน (ประมาณ)</div>
         <div id="costCalcResult" style="color:var(--muted);font-size:13px">กรอกข้อมูลแล้วกดบันทึก</div>
+      </div>
+      <div class="card" style="background:#f0faf5;border-color:#b7e4cc">
+        <div class="card-title" style="color:var(--green)">🧮 Scientific Pricing Calculator</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Price = (ต้นทุน + Buffer) ÷ (1 − Target Margin)</div>
+        <div class="inp-row">
+          <div class="field"><label class="lbl">ต้นทุนจริง/จาน (฿)</label><input class="inp" id="sp-cost" type="number" placeholder="200" inputmode="numeric" oninput="calcScientificPrice()"></div>
+          <div class="field"><label class="lbl">Buffer % (ของเสีย)</label><input class="inp" id="sp-buffer" type="number" placeholder="5" inputmode="numeric" oninput="calcScientificPrice()"></div>
+        </div>
+        <div class="field"><label class="lbl">Target Margin % (เป้ากำไร)</label><input class="inp" id="sp-margin" type="number" placeholder="35" inputmode="numeric" oninput="calcScientificPrice()"></div>
+        <div id="sp-result" style="display:none;margin-top:10px;padding:14px;background:#fff;border-radius:var(--rsm);border:1px solid #b7e4cc">
+          <div style="font-size:12px;color:var(--muted)">ราคาขายที่แนะนำ</div>
+          <div style="font-size:28px;font-weight:800;font-family:var(--mono);color:var(--green)" id="sp-price">฿0</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px" id="sp-breakdown"></div>
+        </div>
       </div>
     </div>
     <div class="set-section" id="sset-goals">
@@ -1031,6 +1056,31 @@ function renderHome() {
   // Staff
   document.getElementById('staffBillsH').textContent = bills;
   document.getElementById('staffRevH').textContent = '฿' + fmt(rev);
+
+  // Red-Flag Management
+  const targetGP = storeSettings.target_gp || 35;
+  const priceAlertPct = storeSettings.price_alert_pct || 10;
+  const redFlags = [];
+  if(margin < 20 && rev > 0) redFlags.push('⚠️ GP ' + margin + '% ต่ำกว่าเกณฑ์ขั้นต่ำ 20%');
+  if(margin < targetGP && margin >= 20 && rev > 0) redFlags.push('📉 GP ' + margin + '% ต่ำกว่าเป้า ' + targetGP + '%');
+  if(gpTotal > rev * 0.25) redFlags.push('💸 GP ออนไลน์สูง ฿' + fmt(gpTotal) + ' คิดเป็น ' + Math.round(gpTotal/rev*100) + '% ของยอดขาย');
+  ingredients.forEach(g => { if((g.stock_qty||0) <= 0) redFlags.push('❌ ' + g.name + ' หมดแล้ว!'); });
+
+  const banner = document.getElementById('redFlagBanner');
+  const profitBox = document.getElementById('profitBox');
+  if(redFlags.length > 0 && rev > 0) {
+    banner.style.display = 'block';
+    document.getElementById('redFlagMsg').innerHTML = redFlags.join('<br>');
+    profitBox.style.background = 'rgba(220,38,38,.2)';
+    profitBox.style.border = '1px solid rgba(220,38,38,.4)';
+    document.getElementById('homeProfit').style.color = '#f87171';
+    document.getElementById('homeMargin').style.color = '#f87171';
+  } else {
+    banner.style.display = 'none';
+    profitBox.style.background = 'rgba(74,222,128,.12)';
+    profitBox.style.border = '1px solid rgba(74,222,128,.25)';
+    document.getElementById('homeProfit').style.color = '#4ade80';
+  }
   // GP rows
   const gpRows = document.getElementById('homeGPRows');
   if(gpTotal > 0) {
@@ -1095,7 +1145,7 @@ function renderPlan() {
   // คำนวณสิ่งที่ต้องทำ
   const needToBuy = ingredients.filter(g => {
     const have = g.stock_qty || 0;
-    const need = (g.daily_need || g.suggest_qty || 1) * boost;
+    const need = Math.round((g.daily_need || g.suggest_qty || 1) * boost * 1.15 * 10) / 10; // Safety Stock +15%
     return have < need;
   }).map(g => ({
     ...g,
@@ -1217,6 +1267,7 @@ function renderMarket() {
         </div>
       </div>
       <div id="mkt-calc" style="margin-top:10px;padding:10px;background:var(--green-dim);border-radius:var(--rsm);font-size:13px;font-family:var(--mono);color:var(--green)"></div>
+      <div id="mkt-price-alert" style="display:none;margin-top:8px;padding:12px;background:#fee2e2;border:2px solid #dc2626;border-radius:var(--rsm);font-size:13px;color:#991b1b;line-height:1.6"></div>
       <div style="display:flex;gap:8px;margin-top:12px">
         <button class="btn btn-outline btn-full" onclick="skipMkt()">ข้ามไป →</button>
         <button class="btn btn-green btn-full" style="font-size:15px" onclick="doneMkt()">ซื้อแล้ว ✓</button>
@@ -1231,13 +1282,26 @@ function renderMarket() {
 window.updateMktCalc = function() {
   const price = parseFloat(document.getElementById('mkt-price')?.value) || 0;
   const qty = parseFloat(document.getElementById('mkt-qty')?.value) || 0;
+  if(!mktItems[mktIdx]) return;
   const item = mktItems[mktIdx];
   const total = price * qty;
-  const prevPrice = item.current_price || 0;
+  const prevPrice = item.current_price || price;
   const diff = price - prevPrice;
-  const diffTxt = diff > 0 ? `▲ แพงขึ้น ${Math.round(diff/prevPrice*100)}%` : diff < 0 ? `▼ ถูกลง ${Math.round(Math.abs(diff)/prevPrice*100)}%` : 'ราคาเท่าเดิม';
+  const diffPct = prevPrice > 0 ? Math.round(diff/prevPrice*100) : 0;
+  const diffTxt = diff > 0 ? '▲ แพงขึ้น ' + diffPct + '%' : diff < 0 ? '▼ ถูกลง ' + Math.abs(diffPct) + '%' : 'ราคาเท่าเดิม';
   const el = document.getElementById('mkt-calc');
-  if(el) el.innerHTML = `฿${fmt(total)} (${qty} ${item.unit} × ฿${price}) · ${diffTxt}`;
+  if(el) el.innerHTML = '฿' + fmt(total) + ' (' + qty + ' ' + item.unit + ' × ฿' + price + ') · ' + diffTxt;
+
+  // 🚨 Price Alert — trigger if > 5% higher
+  const alertEl = document.getElementById('mkt-price-alert');
+  if(alertEl) {
+    if(diffPct > 5 && price > 0) {
+      alertEl.style.display = 'block';
+      alertEl.innerHTML = '🚨 <strong>แพงขึ้น ' + diffPct + '%!</strong><br>ครั้งก่อน ฿' + prevPrice + '/' + item.unit + ' → วันนี้ ฿' + price + '/' + item.unit + '<br><span style="font-size:11px;opacity:.8">กระทบต้นทุนเมนูที่ใช้วัตถุดิบนี้ทันที</span>';
+    } else {
+      alertEl.style.display = 'none';
+    }
+  }
 };
 
 window.doneMkt = async function() {
@@ -1569,6 +1633,29 @@ async function renderAnalyse() {
   const margin = rev ? Math.round(profit/rev*100) : 0;
 
   // กำไรจริงไหม?
+  // Financial Waterfall
+  const waterfallEl = document.getElementById('financialWaterfall');
+  if(waterfallEl) {
+    const steps = [
+      {label:'ยอดขาย',val:rev,color:'#1f7a50',positive:true},
+      {label:'หัก COGS',val:-cogs,color:'#dc2626',positive:false},
+      {label:'หัก GP Online',val:-gpTotal,color:'#dc2626',positive:false},
+      {label:'หัก ค่าแรง',val:-(storeSettings.labor_per_day||1400),color:'#d35400',positive:false},
+      {label:'หัก ค่าเช่า/วัน',val:-Math.round((storeSettings.rent_per_month||0)/26),color:'#d35400',positive:false},
+      {label:'กำไรสุทธิ',val:Math.max(profit,0),color:'#1f7a50',positive:true},
+    ];
+    const maxVal = Math.max(...steps.map(s => Math.abs(s.val)), 1);
+    waterfallEl.innerHTML = steps.map(s => {
+      const pct = Math.round(Math.abs(s.val)/maxVal*100);
+      return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">' +
+        '<div style="font-size:12px;color:var(--muted);width:90px;flex-shrink:0;text-align:right">' + s.label + '</div>' +
+        '<div style="flex:1;height:28px;background:var(--border);border-radius:4px;overflow:hidden">' +
+        '<div style="height:100%;width:' + pct + '%;background:' + s.color + ';border-radius:4px;display:flex;align-items:center;padding:0 8px;min-width:60px;transition:width .4s">' +
+        '<span style="font-size:11px;font-weight:700;color:#fff;font-family:var(--mono)">' + (s.positive?'':'−') + '฿' + fmt(Math.abs(s.val)) + '</span>' +
+        '</div></div></div>';
+    }).join('');
+  }
+
   const profitStatus = margin >= 35 ? {color:'var(--green)',icon:'✅',msg:`Margin ${margin}% — ดีมาก!`}
     : margin >= 20 ? {color:'var(--orange)',icon:'⚠️',msg:`Margin ${margin}% — ระวังต้นทุนขึ้น`}
     : {color:'var(--red)',icon:'❌',msg:`Margin ${margin}% — ต่ำเกินไป ควรปรับราคา`};
@@ -2058,6 +2145,24 @@ window.togglePw = function(id, btn) {
   if(!inp) return;
   inp.type = inp.type === 'password' ? 'text' : 'password';
   btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+};
+
+window.calcScientificPrice = function() {
+  const cost = parseFloat(document.getElementById('sp-cost')?.value) || 0;
+  const buffer = parseFloat(document.getElementById('sp-buffer')?.value) || 5;
+  const margin = parseFloat(document.getElementById('sp-margin')?.value) || 35;
+  if(!cost) { const r=document.getElementById('sp-result'); if(r) r.style.display='none'; return; }
+  const actualCostWithBuffer = cost * (1 + buffer/100);
+  const recommendedPrice = actualCostWithBuffer / (1 - margin/100);
+  const profitPerDish = recommendedPrice - cost;
+  const el = document.getElementById('sp-result');
+  const priceEl = document.getElementById('sp-price');
+  const breakEl = document.getElementById('sp-breakdown');
+  if(el) el.style.display = 'block';
+  if(priceEl) priceEl.textContent = '฿' + Math.ceil(recommendedPrice);
+  if(breakEl) breakEl.innerHTML =
+    'ต้นทุนจริง ฿' + cost + ' + Buffer ' + buffer + '% = ฿' + actualCostWithBuffer.toFixed(0) + '<br>' +
+    'กำไรต่อจาน ฿' + profitPerDish.toFixed(0) + ' (' + margin + '% margin)';
 };
 </script>
 </body>
