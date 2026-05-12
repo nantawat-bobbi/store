@@ -214,6 +214,11 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--a
 .emoji-btn.sel{border-color:var(--green);background:var(--green-dim)}
 select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237a7570' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
 .tag-green{background:#d1fae5;color:#065f46}.tag-gold{background:#fef3c7;color:#92400e}
+
+.pay-btn{background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rsm);padding:7px 4px;cursor:pointer;font-family:var(--font);font-size:14px;text-align:center;transition:all .15s;color:var(--muted);line-height:1.3}
+.pay-btn span{display:block;font-size:10px;font-weight:600;margin-top:2px}
+.pay-btn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.pay-btn:active{transform:scale(.95)}
 </style>
 </head>
 <body>
@@ -396,10 +401,20 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
                 <span style="font-size:15px;font-weight:700">รวม</span>
                 <span style="font-size:22px;font-weight:800;font-family:var(--mono)" id="ototal">฿0</span>
               </div>
-              <div style="display:flex;gap:6px;margin-bottom:8px">
-                <button class="btn btn-sm btn-dark" style="flex:1" id="bCash" onclick="setPay('cash')">💵 เงินสด</button>
-                <button class="btn btn-sm btn-outline" style="flex:1" id="bQR" onclick="setPay('qr')">📱 โอน</button>
-                <button class="btn btn-sm btn-outline" style="flex:1" id="bGrab" onclick="setPay('grab')">🟢 Grab</button>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600">ช่องทางชำระเงิน</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:8px" id="payBtns">
+                <button class="pay-btn on" onclick="setPay('cash',this)">💵<br><span>เงินสด</span></button>
+                <button class="pay-btn" onclick="setPay('promptpay',this)">📲<br><span>PromptPay</span></button>
+                <button class="pay-btn" onclick="setPay('qr',this)">🔳<br><span>QR Code</span></button>
+                <button class="pay-btn" onclick="setPay('credit',this)">💳<br><span>บัตรเครดิต</span></button>
+                <button class="pay-btn" onclick="setPay('debit',this)">💳<br><span>บัตรเดบิต</span></button>
+                <button class="pay-btn" onclick="setPay('grab',this)">🟢<br><span>Grab</span></button>
+                <button class="pay-btn" onclick="setPay('lineman',this)">🔵<br><span>LINE Pay</span></button>
+                <button class="pay-btn" onclick="setPay('truemoney',this)">🟠<br><span>TrueMoney</span></button>
+                <button class="pay-btn" onclick="setPay('robinhood',this)">🔴<br><span>Robinhood</span></button>
+                <button class="pay-btn" onclick="setPay('shopee',this)">🟡<br><span>ShopeePay</span></button>
+                <button class="pay-btn" onclick="setPay('bank',this)">🏦<br><span>โอนธนาคาร</span></button>
+                <button class="pay-btn" onclick="setPay('other',this)">➕<br><span>อื่นๆ</span></button>
               </div>
               <div id="cashRow" style="margin-bottom:8px">
                 <input class="inp" id="cashInp" type="number" placeholder="รับเงินมา..." inputmode="numeric" oninput="calcChg()" style="text-align:right">
@@ -1043,9 +1058,11 @@ function updateTime() {
 function renderHome() {
   const rev = todaySales.reduce((s,x) => s + (x.total || 0), 0);
   const cogs = todaySales.reduce((s,x) => s + (x.cost || 0), 0);
-  const gpGrab = todaySales.filter(x => x.channel === 'grab').reduce((s,x) => s + (x.total || 0) * GP.grab, 0);
-  const gpLine = todaySales.filter(x => x.channel === 'lineman').reduce((s,x) => s + (x.total || 0) * GP.lineman, 0);
-  const gpTotal = gpGrab + gpLine;
+  const gpRates2 = { grab: GP.grab, lineman: GP.lineman, robinhood: 0.03, shopee: 0.025 };
+  const gpGrab = todaySales.filter(x => x.channel === 'grab').reduce((s,x) => s + (x.total||0)*GP.grab, 0);
+  const gpLine = todaySales.filter(x => x.channel === 'lineman').reduce((s,x) => s + (x.total||0)*GP.lineman, 0);
+  const gpOther = todaySales.filter(x => gpRates2[x.channel] && x.channel !== 'grab' && x.channel !== 'lineman').reduce((s,x) => s + (x.total||0)*(gpRates2[x.channel]||0), 0);
+  const gpTotal = gpGrab + gpLine + gpOther;
   const profit = rev - cogs - gpTotal - HIDDEN;
   const margin = rev ? Math.round(profit / rev * 100) : 0;
   const bills = todaySales.length;
@@ -1081,14 +1098,27 @@ function renderHome() {
     profitBox.style.border = '1px solid rgba(74,222,128,.25)';
     document.getElementById('homeProfit').style.color = '#4ade80';
   }
-  // GP rows
+  // GP rows — all channels
   const gpRows = document.getElementById('homeGPRows');
+  const gpChannels = [
+    {icon:'🟢', name:'Grab Pay', key:'grab', rate:GP.grab, rev:gpGrab},
+    {icon:'🔵', name:'LINE Pay', key:'lineman', rate:GP.lineman, rev:gpLine},
+    {icon:'🔴', name:'Robinhood', key:'robinhood', rate:0.03, rev:todaySales.filter(x=>x.channel==='robinhood').reduce((s,x)=>s+(x.total||0),0)*0.03},
+    {icon:'🟡', name:'ShopeePay', key:'shopee', rate:0.025, rev:todaySales.filter(x=>x.channel==='shopee').reduce((s,x)=>s+(x.total||0),0)*0.025},
+  ].filter(c => c.rev > 0);
   if(gpTotal > 0) {
-    gpRows.innerHTML = `
-      <div class="row"><div class="row-icon">🟢</div><div class="row-body"><div class="row-name">Grab</div><div class="row-sub">฿${fmt(gpGrab / GP.grab)} · GP 30%</div></div><div class="row-right"><div class="row-price c-red">−฿${fmt(gpGrab)}</div></div></div>
-      <div class="row"><div class="row-icon">🛵</div><div class="row-body"><div class="row-name">LINE MAN</div><div class="row-sub">฿${fmt(gpLine / GP.lineman)} · GP 30%</div></div><div class="row-right"><div class="row-price c-red">−฿${fmt(gpLine)}</div></div></div>
-      <div class="divider"></div>
-      <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;color:var(--muted)">GP รวมวันนี้</span><span style="font-size:18px;font-weight:800;font-family:var(--mono);color:var(--red)">฿${fmt(gpTotal)}</span></div>`;
+    gpRows.innerHTML = gpChannels.map(c =>
+      '<div class="row"><div class="row-icon">' + c.icon + '</div>' +
+      '<div class="row-body"><div class="row-name">' + c.name + '</div>' +
+      '<div class="row-sub">GP ' + Math.round(c.rate*100) + '%</div></div>' +
+      '<div class="row-right"><div class="row-price c-red">−฿' + fmt(c.rev) + '</div></div></div>'
+    ).join('') +
+    '<div class="divider"></div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:center">' +
+    '<span style="font-size:13px;color:var(--muted)">GP รวมวันนี้</span>' +
+    '<span style="font-size:18px;font-weight:800;font-family:var(--mono);color:var(--red)">฿' + fmt(gpTotal) + '</span></div>';
+  } else {
+    gpRows.innerHTML = '<div style="color:var(--muted);font-size:13px">ยังไม่มียอด Grab / LINE Pay / อื่นๆ</div>';
   }
   renderHomeAlerts();
 }
@@ -1469,12 +1499,29 @@ function renderOrder() {
   calcChg();
 }
 
-function setPay(m) {
+function setPay(m, btn) {
   payMode = m;
-  ['Cash','QR','Grab'].forEach(x => document.getElementById('b'+x).className = 'btn btn-sm btn-outline');
-  document.getElementById('b'+m.charAt(0).toUpperCase()+m.slice(1)).className = 'btn btn-sm btn-dark';
+  // Update button styles
+  document.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  // Show cash input only for cash
   document.getElementById('cashRow').style.display = m === 'cash' ? 'block' : 'none';
-  if(m !== 'cash') { document.getElementById('btnPay').disabled = !Object.keys(order).length; document.getElementById('btnPay').textContent = 'รับเงินแล้ว ✓'; }
+  // Update pay button
+  const btnPay = document.getElementById('btnPay');
+  const labels = {
+    cash:'💵 รับเงินสด ✓', promptpay:'📲 รับ PromptPay ✓',
+    qr:'🔳 รับ QR Code ✓', credit:'💳 รับบัตรเครดิต ✓',
+    debit:'💳 รับบัตรเดบิต ✓', grab:'🟢 รับ Grab Pay ✓',
+    lineman:'🔵 รับ LINE Pay ✓', truemoney:'🟠 รับ TrueMoney ✓',
+    robinhood:'🔴 รับ Robinhood ✓', shopee:'🟡 รับ ShopeePay ✓',
+    bank:'🏦 รับโอนธนาคาร ✓', other:'✓ รับเงินแล้ว'
+  };
+  if(m !== 'cash') {
+    btnPay.disabled = !Object.keys(order).length;
+    btnPay.textContent = labels[m] || 'รับเงินแล้ว ✓';
+  } else {
+    calcChg();
+  }
 }
 
 function calcChg() {
@@ -1499,7 +1546,8 @@ async function confirmPay() {
   const items = Object.values(order);
   const total = items.reduce((s,i) => s + (i.price || 0) * i.qty, 0);
   const cost = items.reduce((s,i) => s + (i.current_cost || i.cost || 0) * i.qty, 0);
-  const gpFee = (payMode === 'grab' || payMode === 'lineman') ? total * GP[payMode] : 0;
+  const gpRates = { grab: GP.grab, lineman: GP.lineman, robinhood: 0.03, shopee: 0.025 };
+  const gpFee = gpRates[payMode] ? total * gpRates[payMode] : 0;
   const profit = total - cost - gpFee;
   const cash = parseFloat(document.getElementById('cashInp').value) || 0;
   const change = payMode === 'cash' ? cash - total : 0;
@@ -1513,7 +1561,19 @@ async function confirmPay() {
       staff_id: curUser?.uid || null,
       created_at: serverTimestamp()
     });
-    const msg = payMode === 'cash' ? (change > 0 ? `ทอนเงิน ฿${fmt(change)}` : 'รับพอดี') : payMode === 'grab' ? `Grab · GP ฿${fmt(gpFee)}` : `โอน ฿${fmt(total)}`;
+    const chNames = {
+      cash:'เงินสด', promptpay:'PromptPay', qr:'QR Code',
+      credit:'บัตรเครดิต', debit:'บัตรเดบิต', grab:'Grab Pay',
+      lineman:'LINE Pay', truemoney:'TrueMoney', robinhood:'Robinhood',
+      shopee:'ShopeePay', bank:'โอนธนาคาร', other:'อื่นๆ'
+    };
+    let msg = '';
+    if(payMode === 'cash') {
+      msg = change > 0 ? 'ทอนเงิน ฿' + fmt(change) : 'รับพอดี';
+    } else {
+      msg = (chNames[payMode] || payMode) + ' · ฿' + fmt(total);
+      if(gpFee > 0) msg += ' (GP ฿' + fmt(gpFee) + ')';
+    }
     document.getElementById('payModalMsg').textContent = msg;
     document.getElementById('payModal').style.display = 'flex';
     showLoad(false);
@@ -1587,13 +1647,27 @@ function renderSum() {
   // Channels
   const ch = {};
   sales.forEach(s => ch[s.channel] = (ch[s.channel]||0) + (s.total||0));
-  document.getElementById('channelRows').innerHTML = [
-    {k:'cash',l:'💵 เงินสด',gp:0},{k:'qr',l:'📱 โอน',gp:0},
-    {k:'grab',l:'🟢 Grab',gp:GP.grab},{k:'lineman',l:'🛵 LINE MAN',gp:GP.lineman}
-  ].map(c => {
+  const allChannels = [
+    {k:'cash',l:'💵 เงินสด',gp:0},
+    {k:'promptpay',l:'📲 PromptPay',gp:0},
+    {k:'qr',l:'🔳 QR Code',gp:0},
+    {k:'credit',l:'💳 บัตรเครดิต',gp:0},
+    {k:'debit',l:'💳 บัตรเดบิต',gp:0},
+    {k:'grab',l:'🟢 Grab Pay',gp:GP.grab},
+    {k:'lineman',l:'🔵 LINE Pay',gp:GP.lineman},
+    {k:'truemoney',l:'🟠 TrueMoney',gp:0},
+    {k:'robinhood',l:'🔴 Robinhood',gp:0.03},
+    {k:'shopee',l:'🟡 ShopeePay',gp:0.025},
+    {k:'bank',l:'🏦 โอนธนาคาร',gp:0},
+    {k:'other',l:'➕ อื่นๆ',gp:0},
+  ];
+  document.getElementById('channelRows').innerHTML = allChannels.map(c => {
     const gross = ch[c.k]||0; if(!gross) return '';
     const net = Math.round(gross*(1-c.gp));
-    return `<div class="row"><div class="row-body"><div class="row-name">${c.l}</div><div class="row-sub">${c.gp?`GP หัก ฿${fmt(gross*c.gp)}`:''}</div></div><div class="row-right"><div class="row-price">฿${fmt(net)}</div></div></div>`;
+    const gpAmt = Math.round(gross*c.gp);
+    return '<div class="row"><div class="row-body"><div class="row-name">' + c.l + '</div>' +
+      (c.gp ? '<div class="row-sub">GP ' + Math.round(c.gp*100) + '% · หัก ฿' + fmt(gpAmt) + '</div>' : '') +
+      '</div><div class="row-right"><div class="row-price">฿' + fmt(net) + '</div></div></div>';
   }).join('');
 
   // LINE msg
