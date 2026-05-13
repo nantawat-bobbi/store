@@ -500,7 +500,7 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
         <!-- Financial Waterfall -->
         <div class="card">
           <div class="card-title">💧 Financial Waterfall — เงินไหลไปไหน</div>
-          <div id="financialWaterfall"><div style="color:var(--muted);font-size:13px">กำลังโหลด...</div></div>
+          <div id="financialWaterfall"></div>
         </div>
         <!-- คำถาม 1 -->
         <div class="card">
@@ -1200,7 +1200,7 @@ async function loadStoreData() {
 
 function setupRealtimeListeners() {
   // Real-time sales today
-  const todayStr = today();
+  const todayStr = getDate();
   const qSales = query(col('sales'), where('date', '==', todayStr));
   unsubSales = onSnapshot(qSales, snap => {
     todaySales = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -1636,6 +1636,8 @@ function renderMenuGrid() {
       <div class="mcard-margin">กำไร ${margin}%</div>
     </div>`;
   }).join('');
+  if(el) el.innerHTML = html;
+  if(elA) elA.innerHTML = html;
 }
 
 function filterCat(c, btn) {
@@ -1886,7 +1888,17 @@ function copyLine() {
 // ANALYSE
 // ══════════════════════════════════════
 async function renderAnalyse() {
-  const sales = todaySales;
+  const selectedD = getDate();
+  // Use cached sales if same day, else fetch from Firebase
+  let sales = todaySales;
+  if(selectedD !== today()) {
+    try {
+      showLoad(true);
+      const snap = await getDocs(query(col('sales'), where('date','==',selectedD)));
+      sales = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      showLoad(false);
+    } catch(e) { showLoad(false); }
+  }
   const rev = sales.reduce((s,x) => s+(x.total||0), 0);
   const cogs = sales.reduce((s,x) => s+(x.cost||0), 0);
   const gpTotal = sales.reduce((s,x) => s+(x.gp_fee||0), 0);
@@ -1895,8 +1907,13 @@ async function renderAnalyse() {
 
   // กำไรจริงไหม?
   // Financial Waterfall
-  const waterfallEl = document.getElementById('financialWaterfall');
-  if(waterfallEl) {
+  // Waterfall — now renderWaterfall() handles both waterfallSteps + financialWaterfall
+  const laborCostA = storeSettings.labor_per_day || 1400;
+  const fixedCostA = Math.round(((storeSettings.rent_per_month||0)+(storeSettings.gas_per_month||0)+(storeSettings.electric_per_month||0)+(storeSettings.water_per_month||0))/26);
+  const varianceLossA = 0;
+  const pkgCostA = sales.reduce((s,x) => s+(x.packaging_cost||0), 0);
+  renderWaterfall(rev, cogs, gpTotal, laborCostA, fixedCostA, varianceLossA, pkgCostA);
+  if(false) { // old block - kept for structure
     const steps = [
       {label:'ยอดขาย',val:rev,color:'#1f7a50',positive:true},
       {label:'หัก COGS',val:-cogs,color:'#dc2626',positive:false},
@@ -1973,8 +1990,10 @@ async function renderAnalyse() {
 
   // Trend (load from Firebase)
   try {
+    if(!storeId) return;
+    const baseDate = new Date(getDate());
     const dates = [];
-    for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); dates.push(d.toISOString().split('T')[0]); }
+    for(let i=6;i>=0;i--){ const d=new Date(baseDate); d.setDate(d.getDate()-i); dates.push(d.toISOString().split('T')[0]); }
     const revByDay = {};
     await Promise.all(dates.map(async date => {
       const q = query(col('sales'), where('date','==',date));
@@ -2916,8 +2935,13 @@ function initSumDate() {
 
 // ── WATERFALL RENDER ──
 function renderWaterfall(rev, cogs, gpTotal, laborCost, fixedCost, varianceLoss, pkgCost) {
+  // Render in both sum page and analyse page
+  ['waterfallSteps','financialWaterfall'].forEach(function(elId) {
+    const el2 = document.getElementById(elId);
+    if(el2) el2.innerHTML = '';
+  });
   const el = document.getElementById('waterfallSteps');
-  if(!el) return;
+  const elA = document.getElementById('financialWaterfall');
 
   const gpNet = rev - gpTotal;
   const grossProfit = gpNet - cogs;
@@ -2940,7 +2964,7 @@ function renderWaterfall(rev, cogs, gpTotal, laborCost, fixedCost, varianceLoss,
 
   const maxVal = Math.max(...steps.map(s => Math.abs(s.val)), 1);
 
-  el.innerHTML = steps.map(s => {
+  const html = steps.map(s => {
     const pct = Math.round(Math.abs(s.val) / maxVal * 100);
     const isNeg = s.val < 0;
     return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">' +
@@ -3394,9 +3418,8 @@ function onGlobalDateChange(val) {
   if(pgId === 'pg-stock')    renderStock();
 }
 
-// Override today() to use globalSelectedDate
-const _realToday = today;
-today = function() { return globalSelectedDate || _realToday(); };
+// getDate() = global date state (use this instead of today() in queries)
+function getDate() { return globalSelectedDate || today(); }
 
 // Init global date after login
 function initGlobalDate() {
@@ -3414,8 +3437,8 @@ function initGlobalDate() {
 // DYNAMIC EXPORT HANDLER — Context-Aware
 // ═══════════════════════════════════════
 
-// Map ของแต่ละ page → label + handler function
-const EXPORT_CONTEXT = {
+// Map ของแต่ละ page → label + handler function (var for hoisting)
+var EXPORT_CONTEXT = {
   'pg-sum':      { label: '📤 GL CSV',       fn: exportCurrentGL },
   'pg-analyse':  { label: '📤 วิเคราะห์ CSV', fn: exportAnalyse },
   'pg-stock':    { label: '📤 สต็อก CSV',     fn: exportStock },
@@ -3428,7 +3451,7 @@ const EXPORT_CONTEXT = {
 // เรียกทุกครั้งที่ switchPg
 function updateExportBtn(pgId) {
   const btn = document.getElementById('exportBtn');
-  if(!btn) return;
+  if(!btn || typeof EXPORT_CONTEXT === 'undefined') return;
   const ctx = EXPORT_CONTEXT[pgId];
   if(ctx) {
     btn.textContent = ctx.label;
