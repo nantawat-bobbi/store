@@ -281,9 +281,9 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
           <input type="date" id="globalDate"
             style="font-size:11px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--accent);font-family:var(--font);outline:none"
             onchange="onGlobalDateChange(this.value)">
-          <button onclick="exportGL()" title="Export General Ledger"
+          <button onclick="handleExport()" id="exportBtn" title="Export ข้อมูลหน้านี้"
             style="font-size:11px;padding:4px 10px;border:1px solid var(--border2);border-radius:6px;background:none;cursor:pointer;color:var(--muted);font-family:var(--font);white-space:nowrap">
-            📤 GL
+            📤 Export
           </button>
         </div>
         <span class="topbar-time" id="topTime"></span>
@@ -1031,6 +1031,7 @@ function switchPg(p) {
   document.querySelectorAll('.bnav-tab').forEach(x => x.classList.remove('on'));
   document.getElementById('pg-' + p)?.classList.add('on');
   document.getElementById('nt-' + p)?.classList.add('on');
+  updateExportBtn('pg-' + p); // Dynamic export context
   if(p === 'stock') renderStock();
   if(p === 'sum') renderSum();
   if(p === 'home') renderHome();
@@ -3406,6 +3407,209 @@ function initGlobalDate() {
   // Show admin tools
   const tools = document.getElementById('adminTopbarTools');
   if(tools && curRole === 'owner') tools.style.display = 'flex';
+}
+
+
+// ═══════════════════════════════════════
+// DYNAMIC EXPORT HANDLER — Context-Aware
+// ═══════════════════════════════════════
+
+// Map ของแต่ละ page → label + handler function
+const EXPORT_CONTEXT = {
+  'pg-sum':      { label: '📤 GL CSV',       fn: exportCurrentGL },
+  'pg-analyse':  { label: '📤 วิเคราะห์ CSV', fn: exportAnalyse },
+  'pg-stock':    { label: '📤 สต็อก CSV',     fn: exportStock },
+  'pg-staff':    { label: '📤 พนักงาน CSV',   fn: exportStaff },
+  'pg-supplier': { label: '📤 Supplier CSV',  fn: exportSuppliers },
+  'pg-plan':     { label: '📤 ใบตลาด PDF',   fn: exportMarketList },
+  'pg-market':   { label: '📤 บิลซื้อ CSV',   fn: exportPurchaseLogs },
+};
+
+// เรียกทุกครั้งที่ switchPg
+function updateExportBtn(pgId) {
+  const btn = document.getElementById('exportBtn');
+  if(!btn) return;
+  const ctx = EXPORT_CONTEXT[pgId];
+  if(ctx) {
+    btn.textContent = ctx.label;
+    btn.style.opacity = '1';
+    btn.style.pointerEvents = 'auto';
+  } else {
+    btn.textContent = '📤 Export';
+    btn.style.opacity = '0.4';
+    btn.style.pointerEvents = 'none';
+  }
+}
+
+window.handleExport = function() {
+  const activePg = document.querySelector('.pg.on');
+  if(!activePg) return;
+  const ctx = EXPORT_CONTEXT[activePg.id];
+  if(ctx && ctx.fn) {
+    ctx.fn();
+  } else {
+    toast('ไม่มีข้อมูล Export สำหรับหน้านี้');
+  }
+};
+
+// ── CSV helper ──
+function downloadCSV(filename, rows) {
+  const csv = '\uFEFF' + rows.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('Download สำเร็จ ✓');
+}
+
+// ── 1. GL Export (หน้าสรุป) ──
+function exportCurrentGL() {
+  const d = globalSelectedDate || today();
+  document.getElementById('gl-from').value = d;
+  document.getElementById('gl-to').value   = d;
+  document.getElementById('glModal').style.display = 'flex';
+}
+
+// ── 2. Analyse Export ──
+function exportAnalyse() {
+  const d = globalSelectedDate || today();
+  const sales = todaySales.filter(s => (s.date||today()) === d);
+  const rev   = sales.reduce((s,x) => s+(x.total||0), 0);
+  const cogs  = sales.reduce((s,x) => s+(x.cost||0), 0);
+  const gp    = sales.reduce((s,x) => s+(x.gp_fee||0), 0);
+  const net   = rev - cogs - gp - (storeSettings.labor_per_day||1400);
+  const margin = rev ? Math.round(net/rev*100) : 0;
+
+  const mc = {}; sales.forEach(s => (s.items||[]).forEach(i => {
+    if(!mc[i.id]) mc[i.id] = {...i, qty:0, rev:0};
+    mc[i.id].qty += i.qty; mc[i.id].rev += (i.price||0)*i.qty;
+  }));
+  const rows = [
+    ['วันที่','ยอดขาย','COGS','GP Online','กำไรสุทธิ','Net Margin%'].join(','),
+    [d, rev, cogs, gp, net, margin+'%'].join(','),
+    '',
+    ['เมนู','จำนวน','รายรับ'].join(','),
+    ...Object.values(mc).sort((a,b) => b.qty-a.qty)
+      .map(m => [m.name, m.qty, m.rev].join(','))
+  ];
+  downloadCSV('analyse_' + d + '.csv', rows);
+}
+
+// ── 3. Stock Export ──
+function exportStock() {
+  const rows = [
+    ['วัตถุดิบ','หน่วย','สต็อกปัจจุบัน','ราคา/หน่วย','มูลค่าสต็อก','จุดแจ้งเตือน'].join(','),
+    ...ingredients.map(g => [
+      g.name, g.unit,
+      (g.stock_qty||0).toFixed(2),
+      g.current_price||0,
+      ((g.stock_qty||0)*(g.current_price||0)).toFixed(2),
+      g.alert_below||0
+    ].join(','))
+  ];
+  downloadCSV('stock_' + (globalSelectedDate||today()) + '.csv', rows);
+}
+
+// ── 4. Staff Export ──
+function exportStaff() {
+  const workDays = 26;
+  const rows = [
+    ['ชื่อ','ตำแหน่ง','กะ','ค่าแรง/วัน','ค่าแรง/เดือน','สถานะ'].join(','),
+    ...staffData.map(s => [
+      s.name, s.role, s.shift,
+      s.wage, s.wage * workDays,
+      s.status === 'in' ? 'กำลังทำงาน' : 'หยุด'
+    ].join(','))
+  ];
+  downloadCSV('staff_' + (globalSelectedDate||today()) + '.csv', rows);
+}
+
+// ── 5. Supplier Export ──
+function exportSuppliers() {
+  const rows = [
+    ['ชื่อ','ประเภท','เบอร์โทร','สั่งก่อน','หมายเหตุ'].join(','),
+    ...suppliers.map(s => [
+      '"'+s.name+'"',
+      s.type, s.phone||'',
+      s.order_before||'',
+      '"'+(s.notes||'')+'"'
+    ].join(','))
+  ];
+  downloadCSV('suppliers_' + (globalSelectedDate||today()) + '.csv', rows);
+}
+
+// ── 6. Market List Export (หน้าวางแผน) ──
+function exportMarketList() {
+  const d = globalSelectedDate || today();
+  const boost = [0,6].includes(new Date(d).getDay()) ? 1.30 : 1.0;
+  const rows = [
+    ['ใบตลาด - ' + d + (boost > 1 ? ' (วันหยุด +30%)' : '')].join(','),
+    '',
+    ['วัตถุดิบ','มีอยู่','ต้องการ (Safety +15%)','ต้องซื้อ','หน่วย','ราคาครั้งก่อน','ประมาณค่าใช้จ่าย','[ ติ๊กซื้อแล้ว ]'].join(','),
+    ...ingredients.map(g => {
+      const have = g.stock_qty || 0;
+      const need = Math.round((g.daily_need||1) * boost * 1.15 * 10) / 10;
+      const buy  = Math.max(0, need - have);
+      return [
+        g.name,
+        have.toFixed(1),
+        need.toFixed(1),
+        buy > 0 ? buy.toFixed(1) : '-',
+        g.unit,
+        '฿' + (g.current_price||0),
+        buy > 0 ? '฿' + Math.round(buy*(g.current_price||0)) : '-',
+        '[ ]'
+      ].join(',');
+    }),
+    '',
+    ['รวมประมาณการ',
+      ingredients.reduce((s,g) => {
+        const have = g.stock_qty||0;
+        const need = Math.round((g.daily_need||1)*boost*1.15*10)/10;
+        const buy  = Math.max(0, need-have);
+        return s + buy*(g.current_price||0);
+      }, 0).toFixed(0)
+    ].join(',')
+  ];
+  downloadCSV('market_list_' + d + '.csv', rows);
+}
+
+// ── 7. Purchase Logs Export (หน้าตลาด) ──
+async function exportPurchaseLogs() {
+  showLoad(true);
+  try {
+    const d = globalSelectedDate || today();
+    const snap = await getDocs(
+      query(col('purchase_logs'),
+        where('transaction_date','>=', d),
+        where('transaction_date','<=', d)
+      )
+    );
+    const logs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const rows = [
+      ['วันที่บิล','วันที่บันทึก','วัตถุดิบ','จำนวน','หน่วย','ราคา/หน่วย','รวม','ราคาก่อน','%เปลี่ยน','แจ้งเตือน','บิลย้อนหลัง'].join(','),
+      ...logs.map(l => {
+        const ing = ingredients.find(x => x.id === l.ingredient_id);
+        let recDate = '—';
+        try { recDate = l.record_date?.toDate?.()?.toLocaleDateString('th') || '—'; } catch(e) {}
+        return [
+          l.transaction_date, recDate,
+          ing ? ing.name : l.ingredient_id,
+          l.qty_purchased, ing ? ing.unit : '',
+          l.price_per_unit, l.total_cost||0,
+          l.prev_price||0,
+          (l.price_variance_pct||0).toFixed(1)+'%',
+          l.is_price_alert ? 'แจ้งเตือน' : '-',
+          l.is_late_entry ? 'ย้อนหลัง' : '-'
+        ].join(',');
+      })
+    ];
+    downloadCSV('purchase_logs_' + d + '.csv', rows);
+  } catch(e) { toast('Export ไม่สำเร็จ: ' + e.message); }
+  showLoad(false);
 }
 
 </script>
