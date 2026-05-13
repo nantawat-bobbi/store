@@ -2445,24 +2445,32 @@ function _drawRecipeList() {
     el.innerHTML = '<div class="empty">ยังไม่มีสูตรอาหาร<br>กด + สร้างสูตรได้เลย</div>';
     return;
   }
-  el.innerHTML = recipes.map(r => {
-    const m = menus.find(x => x.id === r.menu_id);
+  const rows = recipes.map(function(r) {
+    const m = menus.find(function(x) { return x.id === r.menu_id; });
     const ingCount = (r.ingredients || []).length;
     const costDI = r.cost_dinein || 0;
-    const margin = m && m.price ? Math.round((m.price - costDI) / m.price * 100) : 0;
+    const margin = (m && m.price) ? Math.round((m.price - costDI) / m.price * 100) : 0;
     const mc = margin >= 35 ? 'var(--green)' : margin >= 20 ? 'var(--orange)' : 'var(--red)';
-    return '<div class="row">' +
-      '<div class="row-icon">' + (m ? m.emoji || '🍽️' : '📋') + '</div>' +
+    const div = document.createElement('div');
+    div.className = 'row';
+    div.innerHTML =
+      '<div class="row-icon">' + (m ? (m.emoji || '🍽️') : '📋') + '</div>' +
       '<div class="row-body">' +
         '<div class="row-name">' + (m ? m.name : r.menu_id) + '</div>' +
         '<div class="row-sub">' + ingCount + ' วัตถุดิบ · ต้นทุน ฿' + costDI.toFixed(0) +
           ' · <span style="color:' + mc + ';font-weight:700">margin ' + margin + '%</span></div>' +
       '</div>' +
       '<div style="display:flex;gap:5px;flex-shrink:0">' +
-        '<button class="btn btn-outline btn-sm" onclick="editRecipe('' + r.id + '')">แก้</button>' +
-        '<button class="btn btn-sm" style="background:none;color:var(--red);border:1px solid var(--red)" onclick="deleteRecipe('' + r.id + '')">ลบ</button>' +
-      '</div></div>';
-  }).join('');
+        '<button class="btn btn-outline btn-sm">แก้</button>' +
+        '<button class="btn btn-sm" style="background:none;color:var(--red);border:1px solid var(--red)">ลบ</button>' +
+      '</div>';
+    const btns = div.querySelectorAll('button');
+    btns[0].onclick = function() { editRecipe(r.id); };
+    btns[1].onclick = function() { deleteRecipe(r.id); };
+    return div;
+  });
+  el.innerHTML = '';
+  rows.forEach(function(row) { el.appendChild(row); });
 }
 
 // ── Show add recipe modal ──
@@ -2518,22 +2526,56 @@ function drawIngRows() {
     el.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">ยังไม่มีวัตถุดิบ — กด + เพิ่ม</div>';
     return;
   }
-  el.innerHTML = recipeIngRows.map((row, i) => {
-    const ing = ingredients.find(x => x.id === row.ingredient_id);
-    const costPerG = ing ? (ing.current_price / ((ing.yield_pct || 1) * 1000)) : 0;
-    const rowCost = costPerG * (row.net_qty_g || 0);
-    return '<div style="display:grid;grid-template-columns:1fr 90px 70px 28px;gap:6px;margin-bottom:8px;align-items:center">' +
-      '<select class="inp" style="font-size:13px" onchange="updateIngRow(' + i + ','ingredient_id',this.value)">' +
-        '<option value="">-- วัตถุดิบ --</option>' +
-        ingredients.map(g => '<option value="' + g.id + '" ' + (row.ingredient_id === g.id ? 'selected' : '') + '>' +
-          (g.icon || '') + ' ' + g.name + '</option>').join('') +
-      '</select>' +
-      '<input class="inp" type="number" placeholder="Net(g)" value="' + (row.net_qty_g || '') + '" ' +
-        'style="text-align:right;font-size:13px" oninput="updateIngRow(' + i + ','net_qty_g',parseFloat(this.value)||0)">' +
-      '<div style="font-size:11px;color:var(--muted);text-align:center;font-family:var(--mono)">฿' + rowCost.toFixed(1) + '</div>' +
-      '<button onclick="removeIngRow(' + i + ')" style="background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;padding:0">×</button>' +
-    '</div>';
-  }).join('');
+  el.innerHTML = '';
+  recipeIngRows.forEach(function(row, i) {
+    const ing = ingredients.find(function(x) { return x.id === row.ingredient_id; });
+    const yieldPct = ing ? (ing.yield_pct || 1.0) : 1.0;
+    const grossQtyG = row.net_qty_g ? row.net_qty_g / yieldPct : 0;
+    const costPerG = ing ? (ing.current_price / 1000) : 0;
+    const rowCost = costPerG * grossQtyG;
+
+    const div = document.createElement('div');
+    div.style.cssText = 'display:grid;grid-template-columns:1fr 90px 80px 28px;gap:6px;margin-bottom:8px;align-items:center';
+
+    // Ingredient select
+    const sel = document.createElement('select');
+    sel.className = 'inp';
+    sel.style.fontSize = '13px';
+    sel.innerHTML = '<option value="">-- วัตถุดิบ --</option>' +
+      ingredients.map(function(g) {
+        return '<option value="' + g.id + '" ' + (row.ingredient_id === g.id ? 'selected' : '') + '>' +
+          (g.icon || '') + ' ' + g.name + ' (yield ' + Math.round((g.yield_pct||1)*100) + '%)' +
+          '</option>';
+      }).join('');
+    sel.onchange = function() { updateIngRow(i, 'ingredient_id', this.value); };
+
+    // Net qty input
+    const qtyInp = document.createElement('input');
+    qtyInp.className = 'inp';
+    qtyInp.type = 'number';
+    qtyInp.placeholder = 'Net(g)';
+    qtyInp.value = row.net_qty_g || '';
+    qtyInp.style.cssText = 'text-align:right;font-size:13px';
+    qtyInp.oninput = function() { updateIngRow(i, 'net_qty_g', parseFloat(this.value)||0); };
+
+    // Cost display
+    const costDiv = document.createElement('div');
+    costDiv.style.cssText = 'font-size:10px;color:var(--muted);text-align:center;font-family:var(--mono)';
+    const grossStr = grossQtyG > 0 ? 'Gross ' + Math.round(grossQtyG) + 'g' : '';
+    costDiv.innerHTML = '฿' + rowCost.toFixed(1) + '<br><span style="font-size:9px">' + grossStr + '</span>';
+
+    // Remove button
+    const rmBtn = document.createElement('button');
+    rmBtn.textContent = '×';
+    rmBtn.style.cssText = 'background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;padding:0';
+    rmBtn.onclick = function() { removeIngRow(i); };
+
+    div.appendChild(sel);
+    div.appendChild(qtyInp);
+    div.appendChild(costDiv);
+    div.appendChild(rmBtn);
+    el.appendChild(div);
+  });
 }
 
 window.updateIngRow = function(i, field, val) {
@@ -2558,25 +2600,56 @@ function drawPkgRows(channel) {
   const el = document.getElementById('r-pkg-' + channel + '-list');
   if(!el) return;
   const rows = recipePkgRows[channel];
-  if(!rows.length) { el.innerHTML = '<div style="font-size:12px;color:var(--muted)">ไม่มีบรรจุภัณฑ์</div>'; return; }
-
-  getDocs(col('packaging')).then(snap => {
-    const pkgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    el.innerHTML = rows.map((row, i) => {
-      const pkg = pkgs.find(p => p.id === row.packaging_id);
+  if(!rows.length) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--muted)">ไม่มีบรรจุภัณฑ์</div>';
+    return;
+  }
+  getDocs(col('packaging')).then(function(snap) {
+    const pkgs = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
+    el.innerHTML = '';
+    rows.forEach(function(row, i) {
+      const pkg = pkgs.find(function(p) { return p.id === row.packaging_id; });
       const cost = pkg ? pkg.price_per_unit * row.qty : 0;
-      return '<div style="display:grid;grid-template-columns:1fr 60px 60px 24px;gap:5px;margin-bottom:6px;align-items:center">' +
-        '<select class="inp" style="font-size:12px" onchange="updatePkgRow('' + channel + '',' + i + ','packaging_id',this.value)">' +
-          '<option value="">-- บรรจุภัณฑ์ --</option>' +
-          pkgs.map(p => '<option value="' + p.id + '" ' + (row.packaging_id === p.id ? 'selected' : '') + '>' +
-            p.name + ' (฿' + p.price_per_unit + ')</option>').join('') +
-        '</select>' +
-        '<input class="inp" type="number" placeholder="จำนวน" value="' + row.qty + '" min="1" ' +
-          'style="text-align:center;font-size:12px" oninput="updatePkgRow('' + channel + '',' + i + ','qty',parseInt(this.value)||1)">' +
-        '<div style="font-size:11px;color:var(--muted);text-align:center;font-family:var(--mono)">฿' + cost.toFixed(1) + '</div>' +
-        '<button onclick="removePkgRow('' + channel + '',' + i + ')" style="background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;padding:0">×</button>' +
-      '</div>';
-    }).join('');
+
+      const div = document.createElement('div');
+      div.style.cssText = 'display:grid;grid-template-columns:1fr 60px 60px 24px;gap:5px;margin-bottom:6px;align-items:center';
+
+      const sel = document.createElement('select');
+      sel.className = 'inp';
+      sel.style.fontSize = '12px';
+      sel.innerHTML = '<option value="">-- บรรจุภัณฑ์ --</option>' +
+        pkgs.map(function(p) {
+          return '<option value="' + p.id + '" ' + (row.packaging_id === p.id ? 'selected' : '') + '>' +
+            p.name + ' (฿' + p.price_per_unit + ')' + '</option>';
+        }).join('');
+      sel.onchange = function() { updatePkgRow(channel, i, 'packaging_id', this.value); };
+
+      const qtyInp = document.createElement('input');
+      qtyInp.className = 'inp';
+      qtyInp.type = 'number';
+      qtyInp.placeholder = 'จำนวน';
+      qtyInp.value = row.qty || 1;
+      qtyInp.min = 1;
+      qtyInp.style.cssText = 'text-align:center;font-size:12px';
+      qtyInp.oninput = function() { updatePkgRow(channel, i, 'qty', parseInt(this.value)||1); };
+
+      const costDiv = document.createElement('div');
+      costDiv.style.cssText = 'font-size:11px;color:var(--muted);text-align:center;font-family:var(--mono)';
+      costDiv.textContent = '฿' + cost.toFixed(1);
+
+      const rmBtn = document.createElement('button');
+      rmBtn.textContent = '×';
+      rmBtn.style.cssText = 'background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;padding:0';
+      rmBtn.onclick = function() { removePkgRow(channel, i); };
+
+      div.appendChild(sel);
+      div.appendChild(qtyInp);
+      div.appendChild(costDiv);
+      div.appendChild(rmBtn);
+      el.appendChild(div);
+    });
+  }).catch(function() {
+    el.innerHTML = '<div style="font-size:12px;color:var(--muted)">โหลดบรรจุภัณฑ์ไม่ได้</div>';
   });
 }
 
@@ -3111,22 +3184,28 @@ window.showLateEntries = async function() {
     el.innerHTML = '<div style="color:var(--muted);font-size:13px">ไม่มีบิลย้อนหลัง</div>';
     return;
   }
-  el.innerHTML = entries.map(e => {
-    const ing = ingredients.find(x => x.id === e.ingredient_id);
-    return '<div style="background:var(--bg);border-radius:var(--rsm);padding:14px;margin-bottom:10px;border:1px solid #fcd34d">' +
+  el.innerHTML = '';
+  entries.forEach(function(e) {
+    const ing = ingredients.find(function(x) { return x.id === e.ingredient_id; });
+    const card = document.createElement('div');
+    card.style.cssText = 'background:var(--bg);border-radius:var(--rsm);padding:14px;margin-bottom:10px;border:1px solid #fcd34d';
+    const entryId = e.id;
+    const approveBtn = document.createElement('button');
+    approveBtn.className = 'btn btn-green btn-sm';
+    approveBtn.textContent = 'อนุมัติ';
+    approveBtn.onclick = function() { window.approveLateEntry(entryId, approveBtn); };
+    let recDate = '—';
+    try { recDate = e.record_date && e.record_date.toDate ? e.record_date.toDate().toLocaleDateString('th') : '—'; } catch(ex) {}
+    card.innerHTML =
       '<div style="display:flex;justify-content:space-between;margin-bottom:6px">' +
-        '<span style="font-size:14px;font-weight:700">' + (ing?.name||e.ingredient_id) + '</span>' +
+        '<span style="font-size:14px;font-weight:700">' + (ing ? ing.name : e.ingredient_id) + '</span>' +
         '<span class="tag" style="background:#fef3c7;color:#92400e">ย้อนหลัง</span>' +
       '</div>' +
-      '<div style="font-size:12px;color:var(--muted);margin-bottom:6px">' +
-        'วันที่บิล: <strong>' + e.transaction_date + '</strong> · บันทึก: ' + (e.record_date?.toDate?.()?.toLocaleDateString('th') || '—') +
-      '</div>' +
-      '<div style="font-size:13px;margin-bottom:8px">' +
-        'จำนวน: ' + e.qty_purchased + ' ' + (ing?.unit||'') + ' · ราคา ฿' + e.price_per_unit + ' · รวม ฿' + fmt(e.total_cost||0) +
-      '</div>' +
-      '<button class="btn btn-green btn-sm" onclick="approveLateEntry('' + e.id + '',this)">✓ อนุมัติ</button>' +
-    '</div>';
-  }).join('');
+      '<div style="font-size:12px;color:var(--muted);margin-bottom:6px">วันที่บิล: ' + e.transaction_date + ' · บันทึก: ' + recDate + '</div>' +
+      '<div style="font-size:13px;margin-bottom:8px">จำนวน: ' + e.qty_purchased + ' ' + (ing ? ing.unit : '') + ' · ฿' + fmt(e.total_cost||0) + '</div>';
+    card.appendChild(approveBtn);
+    el.appendChild(card);
+  });
 };
 
 window.approveLateEntry = async function(id, btn) {
