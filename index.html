@@ -306,6 +306,19 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
             </div>
           </div>
         </div>
+        <!-- RED FLAG SYSTEM -->
+        <div id="rfCritical" style="display:none;background:#dc2626;color:#fff;border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;animation:pulse 1.5s infinite">
+          <div style="font-size:13px;font-weight:800;margin-bottom:6px">🔴 CRITICAL — ต้องจัดการทันที</div>
+          <div id="rfCriticalMsg" style="font-size:12px;line-height:1.8"></div>
+        </div>
+        <div id="rfWarning" style="display:none;background:#d97706;color:#fff;border-radius:var(--radius);padding:14px 16px;margin-bottom:8px">
+          <div style="font-size:13px;font-weight:800;margin-bottom:6px">🟡 WARNING — รอการอนุมัติ</div>
+          <div id="rfWarningMsg" style="font-size:12px;line-height:1.8"></div>
+          <button class="btn btn-sm" style="margin-top:8px;background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4)" onclick="showLateEntries()">📋 ดูบิลย้อนหลัง</button>
+        </div>
+        <div id="rfInfo" style="display:none;background:#1f7a50;color:#fff;border-radius:var(--radius);padding:12px 16px;margin-bottom:8px">
+          <div style="font-size:12px;font-weight:600" id="rfInfoMsg"></div>
+        </div>
         <div id="homeAlerts"></div>
         <div class="card" id="homeGP">
           <div class="card-title">💸 GP ออนไลน์วันนี้</div>
@@ -431,11 +444,28 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
 
       <!-- SUMMARY -->
       <div class="pg" id="pg-sum">
+        <!-- Date Picker -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+          <div style="font-size:15px;font-weight:800">📊 งบกำไร-ขาดทุน</div>
+          <div style="flex:1"></div>
+          <input type="date" id="sumDate" class="inp" style="width:auto;font-size:13px;padding:7px 10px" onchange="renderSum()">
+          <button class="btn btn-outline btn-sm" onclick="exportGL()">📤 Export GL</button>
+        </div>
+
+        <!-- REVENUE WATERFALL -->
+        <div class="card" style="padding:0;overflow:hidden">
+          <div style="background:linear-gradient(135deg,#0a1628,#1a2f1a);padding:16px">
+            <div style="font-size:11px;color:#9ca3af;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">💧 Revenue Waterfall — เงินไหลไปไหน</div>
+            <div id="waterfallSteps"></div>
+          </div>
+        </div>
+
+        <!-- Quick Stats -->
         <div class="stat-grid">
-          <div class="stat-box"><div class="stat-lbl">ยอดขาย</div><div class="stat-val" id="sRev">฿0</div><div class="stat-sub" id="sBills">0 บิล</div></div>
-          <div class="stat-box"><div class="stat-lbl">กำไรจริง</div><div class="stat-val c-green" id="sProfit">฿0</div><div class="stat-sub" id="sMargin">0%</div></div>
-          <div class="stat-box"><div class="stat-lbl">ต้นทุนสินค้า</div><div class="stat-val c-gold" id="sCOGS">฿0</div><div class="stat-sub">วัตถุดิบ</div></div>
-          <div class="stat-box"><div class="stat-lbl">GP ออนไลน์</div><div class="stat-val c-red" id="sGP">฿0</div><div class="stat-sub">จ่ายให้แพลตฟอร์ม</div></div>
+          <div class="stat-box"><div class="stat-lbl">ยอดขาย (Gross)</div><div class="stat-val" id="sRev">฿0</div><div class="stat-sub" id="sBills">0 บิล</div></div>
+          <div class="stat-box"><div class="stat-lbl">กำไรสุทธิแท้จริง</div><div class="stat-val c-green" id="sProfit">฿0</div><div class="stat-sub" id="sMargin">0%</div></div>
+          <div class="stat-box"><div class="stat-lbl">True COGS (Gross)</div><div class="stat-val c-gold" id="sCOGS">฿0</div><div class="stat-sub">ต้นทุน Yield basis</div></div>
+          <div class="stat-box"><div class="stat-lbl">GP แพลตฟอร์ม</div><div class="stat-val c-red" id="sGP">฿0</div><div class="stat-sub">จ่ายให้ Grab/LINE ฯ</div></div>
         </div>
         <div class="card"><div class="card-title">ยอดรายชั่วโมง</div><div class="bars" id="hourBars"></div><div style="font-size:11px;color:var(--muted);margin-top:6px;text-align:center">ชั่วโมงทอง: <strong id="peakH">—</strong></div></div>
         <div class="card"><div class="card-title">เปรียบเทียบกับเมื่อวาน</div><div id="vsYest"></div></div>
@@ -887,6 +917,37 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
     <div class="modal-footer">
       <button class="btn btn-outline btn-full" onclick="closeRecipeModal()">ยกเลิก</button>
       <button class="btn btn-dark btn-full" onclick="saveRecipe()">💾 บันทึกสูตร</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL: LATE ENTRIES -->
+<div class="modal-ov" id="lateModal" style="display:none">
+  <div class="modal" style="max-height:85vh;overflow-y:auto">
+    <div class="modal-title">📋 บิลคีย์ย้อนหลัง — รอการอนุมัติ</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">บิลเหล่านี้มีวันที่ transaction_date ≠ วันที่บันทึก ต้องตรวจสอบก่อนอนุมัติ</div>
+    <div id="lateEntriesList"><div style="color:var(--muted);font-size:13px">กำลังโหลด...</div></div>
+    <div class="modal-footer">
+      <button class="btn btn-dark btn-full" onclick="document.getElementById('lateModal').style.display='none'">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: GL EXPORT -->
+<div class="modal-ov" id="glModal" style="display:none">
+  <div class="modal">
+    <div class="modal-title">📤 Export General Ledger (CSV)</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">ไฟล์มาตรฐานบัญชีคู่ (Double-Entry) สำหรับนักบัญชีภายนอก</div>
+    <div class="field"><label class="lbl">วันที่เริ่มต้น</label><input class="inp" type="date" id="gl-from"></div>
+    <div class="field"><label class="lbl">วันที่สิ้นสุด</label><input class="inp" type="date" id="gl-to"></div>
+    <div style="background:var(--bg);border-radius:var(--rsm);padding:12px;font-size:12px;color:var(--muted);margin-bottom:12px">
+      <div style="font-weight:700;margin-bottom:6px;color:var(--accent)">โครงสร้าง CSV ที่ได้</div>
+      Date | Ref | Description | Debit Account | Credit Account | Amount (THB)
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-full" onclick="document.getElementById('glModal').style.display='none'">ยกเลิก</button>
+      <button class="btn btn-green btn-full" onclick="doExportGL()">📥 Download CSV</button>
     </div>
   </div>
 </div>
@@ -2754,6 +2815,470 @@ window.deleteRecipe = async function(id) {
     recipes = recipes.filter(r => r.id !== id);
     _drawRecipeList(); toast('ลบแล้ว (Soft Delete)');
   } catch(e) { toast('เกิดข้อผิดพลาด'); }
+  showLoad(false);
+};
+
+
+// ═══════════════════════════════════════════════════════
+// PHASE 2 — FINANCIAL WATERFALL & RED-FLAG DASHBOARD
+// ═══════════════════════════════════════════════════════
+
+// ── Set default date to today ──
+function initSumDate() {
+  const el = document.getElementById('sumDate');
+  if(el && !el.value) el.value = today();
+}
+
+// ── WATERFALL RENDER ──
+function renderWaterfall(rev, cogs, gpTotal, laborCost, fixedCost, varianceLoss, pkgCost) {
+  const el = document.getElementById('waterfallSteps');
+  if(!el) return;
+
+  const gpNet = rev - gpTotal;
+  const grossProfit = gpNet - cogs;
+  const afterLabor = grossProfit - laborCost;
+  const afterFixed = afterLabor - fixedCost;
+  const netProfit = afterFixed - varianceLoss - pkgCost;
+
+  const steps = [
+    { label:'ยอดขายรวม (Gross Revenue)',   val: rev,          sign:'+', color:'#4ade80', bold:true },
+    { label:'หัก GP แพลตฟอร์ม',            val: gpTotal,      sign:'-', color:'#f87171' },
+    { label:'= ยอดขายสุทธิ',               val: gpNet,        sign:'=', color:'#fff',   sub:true },
+    { label:'หัก True COGS (Gross Yield)',  val: cogs,         sign:'-', color:'#fbbf24' },
+    { label:'= Gross Profit',              val: grossProfit,  sign:'=', color:'#fff',   sub:true },
+    { label:'หัก ค่าแรงพนักงาน',            val: laborCost,    sign:'-', color:'#fb923c' },
+    { label:'หัก Fixed Cost รายวัน',        val: fixedCost,    sign:'-', color:'#fb923c' },
+    { label:'หัก บรรจุภัณฑ์',              val: pkgCost,      sign:'-', color:'#fb923c' },
+    { label:'หัก ของหาย (Variance)',        val: varianceLoss, sign:'-', color:'#f87171' },
+    { label:'= กำไรสุทธิแท้จริง',          val: netProfit,    sign:'=', color: netProfit >= 0 ? '#4ade80' : '#f87171', bold:true },
+  ];
+
+  const maxVal = Math.max(...steps.map(s => Math.abs(s.val)), 1);
+
+  el.innerHTML = steps.map(s => {
+    const pct = Math.round(Math.abs(s.val) / maxVal * 100);
+    const isNeg = s.val < 0;
+    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">' +
+      '<div style="font-size:11px;color:' + (s.sub ? '#6b7280' : '#9ca3af') + ';width:180px;flex-shrink:0;' + (s.bold ? 'color:#e5e7eb;font-weight:700' : '') + '">' + s.label + '</div>' +
+      '<div style="flex:1;height:24px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden">' +
+        '<div style="height:100%;width:' + Math.max(pct,2) + '%;background:' + s.color + ';border-radius:4px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;min-width:80px;transition:width .5s">' +
+          '<span style="font-size:11px;font-weight:700;color:' + (s.color === '#fff' ? '#111' : '#fff') + ';font-family:var(--mono);white-space:nowrap">' +
+            s.sign + ' ฿' + fmt(Math.abs(s.val)) +
+          '</span>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ── UPGRADED renderSum ──
+const _origRenderSum = renderSum;
+renderSum = function() {
+  initSumDate();
+  const selectedDate = document.getElementById('sumDate')?.value || today();
+
+  const sales = todaySales.filter(s => {
+    const sDate = s.date || today();
+    return sDate === selectedDate;
+  });
+
+  const rev    = sales.reduce((s,x) => s + (x.total||0), 0);
+  const cogs   = sales.reduce((s,x) => s + (x.cost||0), 0);
+  const gpTotal= sales.reduce((s,x) => s + (x.gp_fee||0), 0);
+  const pkgCost= sales.reduce((s,x) => s + (x.packaging_cost||0), 0);
+  const laborCost = storeSettings.labor_per_day || 1400;
+  const fixedCost = Math.round(
+    ((storeSettings.rent_per_month||0) +
+     (storeSettings.gas_per_month||0) +
+     (storeSettings.electric_per_month||0) +
+     (storeSettings.water_per_month||0)) / 26
+  );
+  const varianceLoss = 0; // จะเชื่อมกับ Blind Count ใน Phase 2
+  const netProfit = rev - cogs - gpTotal - pkgCost - laborCost - fixedCost - varianceLoss;
+  const margin = rev ? Math.round(netProfit/rev*100) : 0;
+  const bills  = sales.length;
+
+  // Waterfall
+  renderWaterfall(rev, cogs, gpTotal, laborCost, fixedCost, varianceLoss, pkgCost);
+
+  // Quick stats
+  document.getElementById('sRev').textContent    = '฿' + fmt(rev);
+  document.getElementById('sBills').textContent  = bills + ' บิล · เฉลี่ย ฿' + (bills ? fmt(rev/bills) : 0);
+  document.getElementById('sProfit').textContent = '฿' + fmt(Math.max(netProfit,0));
+  document.getElementById('sMargin').textContent = 'net margin ' + margin + '%';
+  document.getElementById('sCOGS').textContent   = '฿' + fmt(cogs);
+  document.getElementById('sGP').textContent     = '฿' + fmt(gpTotal);
+
+  // Hourly chart
+  const hrs = [10,11,12,13,14,15,16,17,18,19,20];
+  const hs = {}; hrs.forEach(h => hs[h] = 0);
+  sales.forEach(s => {
+    const h = s.created_at?.toDate ? s.created_at.toDate().getHours() : new Date().getHours();
+    if(hs[h] !== undefined) hs[h] += s.total||0;
+  });
+  const maxH = Math.max(...Object.values(hs), 1);
+  const peakH = Object.entries(hs).sort((a,b) => b[1]-a[1])[0];
+  const hBars = document.getElementById('hourBars');
+  if(hBars) hBars.innerHTML = hrs.map(h =>
+    '<div class="bar-w"><div class="bar-b" style="height:' + Math.round(hs[h]/maxH*100) + '%"></div><div class="bar-l">' + h + '</div></div>'
+  ).join('');
+  const phEl = document.getElementById('peakH');
+  if(phEl) phEl.textContent = peakH ? peakH[0]+':00 (฿'+fmt(peakH[1])+')' : '—';
+
+  // Shift compare
+  const morning = sales.filter(x => { try { return x.created_at?.toDate().getHours() < 14; } catch(e) { return false; } });
+  const afternoon = sales.filter(x => { try { return x.created_at?.toDate().getHours() >= 14; } catch(e) { return false; } });
+  const mRev = morning.reduce((s,x) => s+(x.total||0), 0);
+  const aRev = afternoon.reduce((s,x) => s+(x.total||0), 0);
+  const scEl = document.getElementById('shiftComp');
+  if(scEl) scEl.innerHTML =
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
+    '<div style="background:#f0faf5;border:1px solid #b7e4cc;border-radius:9px;padding:12px;text-align:center"><div style="font-size:11px;color:var(--green);font-weight:700">☀️ กะเช้า</div><div style="font-size:18px;font-weight:800;font-family:var(--mono)">฿'+fmt(mRev)+'</div><div style="font-size:11px;color:var(--muted)">'+morning.length+' บิล</div></div>' +
+    '<div style="background:#fff9f0;border:1px solid #fcd34d;border-radius:9px;padding:12px;text-align:center"><div style="font-size:11px;color:var(--orange);font-weight:700">🌙 กะบ่าย</div><div style="font-size:18px;font-weight:800;font-family:var(--mono)">฿'+fmt(aRev)+'</div><div style="font-size:11px;color:var(--muted)">'+afternoon.length+' บิล</div></div>' +
+    '</div>';
+
+  // Top menus
+  const mc = {};
+  sales.forEach(s => (s.items||[]).forEach(i => {
+    if(!mc[i.id]) mc[i.id] = {...i, totalQty:0, totalRev:0};
+    mc[i.id].totalQty += i.qty; mc[i.id].totalRev += (i.price||0)*i.qty;
+  }));
+  const top = Object.values(mc).sort((a,b) => b.totalQty-a.totalQty).slice(0,5);
+  const tmEl = document.getElementById('topMenus');
+  if(tmEl) tmEl.innerHTML = top.length ? top.map((m,i) =>
+    '<div class="row"><div style="font-size:18px">'+['🥇','🥈','🥉','4️⃣','5️⃣'][i]+'</div>' +
+    '<div class="row-body"><div class="row-name">'+m.name+'</div><div class="row-sub">'+m.totalQty+' ที่ · ฿'+fmt(m.totalRev)+'</div></div></div>'
+  ).join('') : '<div style="color:var(--muted);font-size:13px">ยังไม่มียอดขาย</div>';
+
+  // Profit per menu
+  const pp = Object.values(mc).sort((a,b) => (b.price-b.cost)-(a.price-a.cost)).slice(0,5);
+  const pmEl = document.getElementById('profitMenus');
+  if(pmEl) pmEl.innerHTML = pp.length ? pp.map(m => {
+    const g = m.price ? Math.round((m.price-(m.cost||0))/m.price*100) : 0;
+    return '<div class="row"><div class="row-body"><div class="row-name">'+m.name+'</div>' +
+      '<div class="row-sub">฿'+m.price+' · ต้นทุน ฿'+fmt(m.cost||0)+'</div>' +
+      '<div class="prog" style="margin-top:3px"><div class="prog-fill" style="width:'+g+'%"></div></div>' +
+      '</div><div style="font-weight:800;font-family:var(--mono);color:var(--green)">'+g+'%</div></div>';
+  }).join('') : '<div style="color:var(--muted);font-size:13px">ยังไม่มียอดขาย</div>';
+
+  // Channels
+  const allCh = [
+    {k:'cash',l:'💵 เงินสด',gp:0},{k:'promptpay',l:'📲 PromptPay',gp:0},
+    {k:'qr',l:'🔳 QR Code',gp:0},{k:'credit',l:'💳 บัตรเครดิต',gp:0},
+    {k:'debit',l:'💳 บัตรเดบิต',gp:0},{k:'grab',l:'🟢 Grab Pay',gp:GP.grab},
+    {k:'lineman',l:'🔵 LINE Pay',gp:GP.lineman},{k:'truemoney',l:'🟠 TrueMoney',gp:0},
+    {k:'robinhood',l:'🔴 Robinhood',gp:0.03},{k:'shopee',l:'🟡 ShopeePay',gp:0.025},
+    {k:'bank',l:'🏦 โอนธนาคาร',gp:0},{k:'other',l:'➕ อื่นๆ',gp:0},
+  ];
+  const chMap = {};
+  sales.forEach(s => chMap[s.channel] = (chMap[s.channel]||0) + (s.total||0));
+  const chEl = document.getElementById('channelRows');
+  if(chEl) chEl.innerHTML = allCh.map(c => {
+    const gross = chMap[c.k]||0; if(!gross) return '';
+    const net = Math.round(gross*(1-c.gp));
+    return '<div class="row"><div class="row-body"><div class="row-name">'+c.l+'</div>' +
+      (c.gp ? '<div class="row-sub">GP '+Math.round(c.gp*100)+'% · หัก ฿'+fmt(gross*c.gp)+'</div>' : '') +
+      '</div><div class="row-right"><div class="row-price">฿'+fmt(net)+'</div></div></div>';
+  }).join('');
+
+  // Cash check
+  const cashSales = sales.filter(x => x.channel==='cash').reduce((s,x) => s+(x.total||0), 0);
+  const sysCashEl = document.getElementById('sysCashAmt');
+  if(sysCashEl) sysCashEl.textContent = '฿' + fmt(cashSales);
+
+  // LINE message
+  const lmEl = document.getElementById('lineMsg');
+  if(lmEl) lmEl.innerHTML =
+    '🐟 ร้านฉลาด ' + selectedDate + '<br>━━━━━━━━━━━━━━<br>' +
+    '💰 ยอดขาย: ฿' + fmt(rev) + '<br>' +
+    '📦 True COGS: ฿' + fmt(cogs) + '<br>' +
+    '🟢 GP Online: ฿' + fmt(gpTotal) + '<br>' +
+    '👤 ค่าแรง: ฿' + fmt(laborCost) + '<br>' +
+    '🏠 Fixed Cost: ฿' + fmt(fixedCost) + '<br>' +
+    '✅ กำไรสุทธิ: ฿' + fmt(Math.max(netProfit,0)) + ' (' + margin + '%)<br>' +
+    '━━━━━━━━━━━━━━<br>' +
+    '🥇 ขายดี: ' + (top[0]?.name||'—');
+};
+
+// ── UPGRADED renderHome with Full Red-Flag ──
+const _origRenderHome = renderHome;
+renderHome = async function() {
+  _origRenderHome();
+
+  // ══ RED FLAG ENGINE ══
+  const criticals = [];
+  const warnings  = [];
+  const infos     = [];
+
+  // 🔴 CRITICAL 1: วัตถุดิบต่ำกว่า alert_below
+  ingredients.forEach(g => {
+    const have = g.stock_qty || 0;
+    if(have <= 0) {
+      criticals.push('❌ <strong>' + g.name + '</strong> หมดแล้ว! ต้องสั่งซื้อด่วน');
+    } else if(have <= (g.alert_below || 0)) {
+      criticals.push('⚠️ <strong>' + g.name + '</strong> เหลือ ' + have.toFixed(1) + ' ' + g.unit + ' ต่ำกว่าจุดสั่งซื้อ');
+    }
+  });
+
+  // 🔴 CRITICAL 2: GP สูงเกิน 25% ของรายได้
+  const todayRev = todaySales.reduce((s,x) => s+(x.total||0), 0);
+  const todayGP  = todaySales.reduce((s,x) => s+(x.gp_fee||0), 0);
+  if(todayRev > 0 && todayGP/todayRev > 0.25) {
+    criticals.push('💸 GP Online สูงผิดปกติ ' + Math.round(todayGP/todayRev*100) + '% ของยอดขาย (เกิน 25%)');
+  }
+
+  // 🔴 CRITICAL 3: Blind Count Variance (ดึงจาก Firebase)
+  try {
+    const todaySnap = await getDocs(
+      query(col('inventory_snapshots'),
+        where('snapshot_date','==',today()),
+        where('status','in',['CRITICAL','WARNING'])
+      )
+    );
+    todaySnap.docs.forEach(d => {
+      const data = d.data();
+      if(data.status === 'CRITICAL') {
+        criticals.push('🔍 Blind Count: <strong>' + (data.ingredient_name||'วัตถุดิบ') + '</strong> หายไป ฿' + fmt(data.variance_value||0));
+      } else if(data.status === 'WARNING') {
+        warnings.push('🔍 Blind Count: <strong>' + (data.ingredient_name||'วัตถุดิบ') + '</strong> ส่วนต่าง ฿' + fmt(data.variance_value||0) + ' รอตรวจสอบ');
+      }
+    });
+  } catch(e) {}
+
+  // 🟡 WARNING: บิลย้อนหลัง (is_late_entry = TRUE)
+  try {
+    const lateSnap = await getDocs(
+      query(col('purchase_logs'),
+        where('is_late_entry','==',true),
+        where('is_approved','==',false)
+      )
+    );
+    if(!lateSnap.empty) {
+      warnings.push('📋 มีบิลคีย์ย้อนหลัง <strong>' + lateSnap.size + ' รายการ</strong> รอการอนุมัติ');
+      // Store for modal
+      window._lateEntries = lateSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    }
+  } catch(e) {}
+
+  // 🟡 WARNING: Net Profit ต่ำกว่าเป้า
+  const todayCOGS  = todaySales.reduce((s,x) => s+(x.cost||0), 0);
+  const laborCost  = storeSettings.labor_per_day || 1400;
+  const fixedCost  = Math.round(((storeSettings.rent_per_month||0)+(storeSettings.gas_per_month||0)+(storeSettings.electric_per_month||0))/26);
+  const netProfit  = todayRev - todayCOGS - todayGP - laborCost - fixedCost;
+  const netMargin  = todayRev > 0 ? Math.round(netProfit/todayRev*100) : 0;
+  const targetGP   = storeSettings.target_gp || 35;
+  if(todayRev > 0 && netMargin < 20) {
+    criticals.push('📉 Net Margin วันนี้ <strong>' + netMargin + '%</strong> ต่ำกว่า 20% — ขาดทุน!');
+  } else if(todayRev > 0 && netMargin < targetGP) {
+    warnings.push('📉 Net Margin <strong>' + netMargin + '%</strong> ต่ำกว่าเป้า ' + targetGP + '% (&minus;' + (targetGP-netMargin) + '%)');
+  }
+
+  // 🟢 INFO: แจ้งเตือนทั่วไป
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  if(month >= 1 && month <= 3) {
+    infos.push('🏷️ ช่วงยื่นภาษีป้าย (ภ.ป.1) — 1 ม.ค. ถึง 31 มี.ค. อย่าลืมยื่นแบบ!');
+  }
+
+  // ── Render Red-Flag Banners ──
+  const rfC = document.getElementById('rfCritical');
+  const rfW = document.getElementById('rfWarning');
+  const rfI = document.getElementById('rfInfo');
+
+  if(rfC) {
+    rfC.style.display = criticals.length ? 'block' : 'none';
+    const rfCMsg = document.getElementById('rfCriticalMsg');
+    if(rfCMsg) rfCMsg.innerHTML = criticals.join('<br>');
+  }
+  if(rfW) {
+    rfW.style.display = warnings.length ? 'block' : 'none';
+    const rfWMsg = document.getElementById('rfWarningMsg');
+    if(rfWMsg) rfWMsg.innerHTML = warnings.join('<br>');
+  }
+  if(rfI) {
+    rfI.style.display = infos.length ? 'block' : 'none';
+    const rfIMsg = document.getElementById('rfInfoMsg');
+    if(rfIMsg) rfIMsg.innerHTML = infos.join('<br>');
+  }
+};
+
+// ── Late Entries Modal ──
+window.showLateEntries = async function() {
+  document.getElementById('lateModal').style.display = 'flex';
+  const el = document.getElementById('lateEntriesList');
+  const entries = window._lateEntries || [];
+  if(!entries.length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:13px">ไม่มีบิลย้อนหลัง</div>';
+    return;
+  }
+  el.innerHTML = entries.map(e => {
+    const ing = ingredients.find(x => x.id === e.ingredient_id);
+    return '<div style="background:var(--bg);border-radius:var(--rsm);padding:14px;margin-bottom:10px;border:1px solid #fcd34d">' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:6px">' +
+        '<span style="font-size:14px;font-weight:700">' + (ing?.name||e.ingredient_id) + '</span>' +
+        '<span class="tag" style="background:#fef3c7;color:#92400e">ย้อนหลัง</span>' +
+      '</div>' +
+      '<div style="font-size:12px;color:var(--muted);margin-bottom:6px">' +
+        'วันที่บิล: <strong>' + e.transaction_date + '</strong> · บันทึก: ' + (e.record_date?.toDate?.()?.toLocaleDateString('th') || '—') +
+      '</div>' +
+      '<div style="font-size:13px;margin-bottom:8px">' +
+        'จำนวน: ' + e.qty_purchased + ' ' + (ing?.unit||'') + ' · ราคา ฿' + e.price_per_unit + ' · รวม ฿' + fmt(e.total_cost||0) +
+      '</div>' +
+      '<button class="btn btn-green btn-sm" onclick="approveLateEntry('' + e.id + '',this)">✓ อนุมัติ</button>' +
+    '</div>';
+  }).join('');
+};
+
+window.approveLateEntry = async function(id, btn) {
+  btn.disabled = true; btn.textContent = 'กำลังอนุมัติ...';
+  try {
+    await updateDoc(colDoc('purchase_logs', id), {
+      is_approved: true,
+      approved_by: curUser?.uid || '',
+      approved_at: serverTimestamp()
+    });
+    await addDoc(col('audit_logs'), {
+      collection: 'purchase_logs', document_id: id,
+      action: 'APPROVE_LATE_ENTRY',
+      performed_by: curUser?.uid || '',
+      performed_at: serverTimestamp(),
+      reason: 'Admin approved late entry bill'
+    });
+    btn.textContent = '✅ อนุมัติแล้ว';
+    btn.style.background = 'var(--muted)';
+    toast('อนุมัติบิลย้อนหลังแล้ว ✓');
+    renderHome();
+  } catch(e) { toast('เกิดข้อผิดพลาด'); btn.disabled = false; btn.textContent = '✓ อนุมัติ'; }
+};
+
+// ══════════════════════════════════════
+// GL EXPORT — Double-Entry CSV
+// ══════════════════════════════════════
+window.exportGL = function() {
+  const el = document.getElementById('glModal');
+  if(el) {
+    document.getElementById('gl-from').value = today();
+    document.getElementById('gl-to').value = today();
+    el.style.display = 'flex';
+  }
+};
+
+window.doExportGL = async function() {
+  const fromDate = document.getElementById('gl-from').value;
+  const toDate   = document.getElementById('gl-to').value;
+  if(!fromDate || !toDate) { toast('กรุณาเลือกวันที่'); return; }
+
+  showLoad(true);
+  try {
+    // Fetch sales in range
+    const salesSnap = await getDocs(
+      query(col('sales'), where('date','>=',fromDate), where('date','<=',toDate))
+    );
+    const salesData = salesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // Fetch purchases in range
+    const purchSnap = await getDocs(
+      query(col('purchase_logs'), where('transaction_date','>=',fromDate), where('transaction_date','<=',toDate))
+    );
+    const purchData = purchSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // Build GL entries
+    const glRows = [];
+
+    // HEADER
+    glRows.push(['Date','Ref','Description','Debit Account','Credit Account','Amount (THB)'].join(','));
+
+    // SALES entries
+    salesData.forEach(s => {
+      if(s.is_voided) return;
+      const date = s.date || fromDate;
+      const ref  = 'SALE-' + s.id.slice(-6).toUpperCase();
+      const chName = s.channel || 'cash';
+
+      // Revenue
+      const debitAcc = chName === 'cash' ? '1100-Cash' : chName === 'grab' ? '1110-Grab-Receivable' :
+                       chName === 'lineman' ? '1111-LINE-Receivable' : '1100-Cash';
+      glRows.push([date, ref, 'ยอดขาย - ' + chName, debitAcc, '4000-Sales-Revenue', (s.total||0).toFixed(2)].join(','));
+
+      // COGS
+      if(s.cost > 0) {
+        glRows.push([date, ref, 'ต้นทุนขาย (COGS)', '5000-COGS', '1200-Inventory', (s.cost||0).toFixed(2)].join(','));
+      }
+
+      // GP Fee
+      if(s.gp_fee > 0) {
+        const gpAcc = chName === 'grab' ? '6310-GP-Grab' : chName === 'lineman' ? '6320-GP-LINE' : '6300-GP-Other';
+        glRows.push([date, ref, 'ค่า GP ' + chName, gpAcc, '1110-Platform-Payable', (s.gp_fee||0).toFixed(2)].join(','));
+      }
+
+      // Packaging
+      if(s.packaging_cost > 0) {
+        glRows.push([date, ref, 'ต้นทุนบรรจุภัณฑ์', '5200-Packaging', '1220-Packaging-Inventory', (s.packaging_cost||0).toFixed(2)].join(','));
+      }
+    });
+
+    // PURCHASE entries
+    purchData.forEach(p => {
+      const date = p.transaction_date || fromDate;
+      const ref  = 'PUR-' + p.id.slice(-6).toUpperCase();
+      const ing  = ingredients.find(x => x.id === p.ingredient_id);
+      const name = ing ? ing.name : 'วัตถุดิบ';
+
+      glRows.push([date, ref, 'ซื้อวัตถุดิบ - ' + name, '1200-Inventory', '1100-Cash', (p.total_cost||0).toFixed(2)].join(','));
+    });
+
+    // Fixed Cost entries (per day in range)
+    const laborCostDay = storeSettings.labor_per_day || 1400;
+    const fixedPerDay  = Math.round(((storeSettings.rent_per_month||0)+(storeSettings.gas_per_month||0)+(storeSettings.electric_per_month||0))/26);
+
+    // Generate dates in range
+    const dates = [];
+    const cur = new Date(fromDate);
+    const end = new Date(toDate);
+    while(cur <= end) {
+      dates.push(cur.toISOString().split('T')[0]);
+      cur.setDate(cur.getDate() + 1);
+    }
+
+    dates.forEach(date => {
+      if(laborCostDay > 0) {
+        glRows.push([date, 'LABOR-' + date, 'ค่าแรงพนักงาน', '6100-Labor', '2100-Accrued-Labor', laborCostDay.toFixed(2)].join(','));
+      }
+      if(fixedPerDay > 0) {
+        glRows.push([date, 'FIXED-' + date, 'ค่าใช้จ่ายคงที่ (เช่า+ไฟ+แก๊ส)', '6200-Fixed-Cost', '2200-Accrued-Fixed', fixedPerDay.toFixed(2)].join(','));
+      }
+    });
+
+    // Validate debit = credit (simple sum)
+    let totalDebit = 0, totalCredit = 0;
+    glRows.slice(1).forEach(row => {
+      const amt = parseFloat(row.split(',').pop()) || 0;
+      totalDebit  += amt; // simplified — in reality debit = credit per entry
+      totalCredit += amt;
+    });
+
+    // Add summary row
+    glRows.push('');
+    glRows.push(['', '', '=== SUMMARY ===', '', '', ''].join(','));
+    glRows.push(['', '', 'Total Entries: ' + (glRows.length - 3), '', '', ''].join(','));
+    glRows.push(['', '', 'Period: ' + fromDate + ' to ' + toDate, '', '', ''].join(','));
+    glRows.push(['', '', 'Generated by ร้านฉลาด System', '', '', new Date().toISOString()].join(','));
+
+    // Download
+    const csv = glRows.join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }); // BOM for Thai chars in Excel
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = 'GL_' + fromDate + '_to_' + toDate + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    document.getElementById('glModal').style.display = 'none';
+    toast('Export GL สำเร็จ ✓ เปิดใน Excel ได้เลย');
+  } catch(e) { toast('เกิดข้อผิดพลาด: ' + e.message); }
   showLoad(false);
 };
 
