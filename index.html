@@ -3427,7 +3427,7 @@ function getDate() { return globalSelectedDate || today(); }
 
 // Init global date after login
 function initGlobalDate() {
-  const d = _realToday();
+  const d = new Date().toISOString().split('T')[0]; // เปลี่ยนเป็นบรรทัดนี้แล้ว
   globalSelectedDate = d;
   const el = document.getElementById('globalDate');
   if(el) el.value = d;
