@@ -1619,12 +1619,16 @@ function renderStock() {
 // ══════════════════════════════════════
 function renderMenuGrid() {
   const cats = ['ทั้งหมด', ...new Set(menus.map(m => m.cat).filter(Boolean))];
-  document.getElementById('catBtns').innerHTML = cats.map((c,i) =>
+  const catBtnsEl = document.getElementById('catBtns');
+  if(!catBtnsEl) return;
+  catBtnsEl.innerHTML = cats.map((c,i) =>
     `<button class="btn btn-sm ${i===0?'btn-dark':'btn-outline'}" onclick="filterCat('${c}',this)">${c}</button>`
   ).join('');
 
   const filtered = curCat === 'all' || curCat === 'ทั้งหมด' ? menus : menus.filter(m => m.cat === curCat);
-  document.getElementById('mgrid').innerHTML = filtered.map(m => {
+  const mgridEl = document.getElementById('mgrid');
+  if(!mgridEl) return;
+  mgridEl.innerHTML = filtered.map(m => {
     const q = order[m.id]?.qty || 0;
     const cost = m.current_cost || m.cost || 0;
     const margin = m.price ? Math.round((m.price - cost) / m.price * 100) : 0;
@@ -1636,8 +1640,6 @@ function renderMenuGrid() {
       <div class="mcard-margin">กำไร ${margin}%</div>
     </div>`;
   }).join('');
-  if(el) el.innerHTML = html;
-  if(elA) elA.innerHTML = html;
 }
 
 function filterCat(c, btn) {
@@ -2978,6 +2980,8 @@ function renderWaterfall(rev, cogs, gpTotal, laborCost, fixedCost, varianceLoss,
       '</div>' +
     '</div>';
   }).join('');
+  if(el) el.innerHTML = html;
+  if(elA) elA.innerHTML = html;
 }
 
 // ── UPGRADED renderSum ──
